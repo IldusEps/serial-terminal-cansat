@@ -7,26 +7,31 @@ import {
   getPressureChartParameteres,
   getZAccelerationChartParameteres,
 } from "./chart";
+import RocketData from "./rocketData";
 
 export default class Rocket {
-  startTrackingButton: HTMLElement | null;
-  flightChartContainer: HTMLElement | null;
+  startTrackingButton: HTMLElement = document.getElementById(
+    "start-rocket-chart"
+  ) as HTMLElement;
+  flightChartContainer: HTMLElement = document.getElementById(
+    "flight-chart"
+  ) as HTMLElement;
 
   rocketChart: any = null;
   startPressure = 0;
-  rocketData = {
-    time: [] as number[],
-    pressure: [] as number[],
-    temperature: [] as number[],
-    x: [] as number[],
-    y: [] as number[],
-    z: [] as number[],
-    aX: [] as number[],
-    aY: [] as number[],
-    aZ: [] as number[],
-    gX: [] as number[],
-    gY: [] as number[],
-    gZ: [] as number[],
+  rocketData: RocketData = {
+    time: [],
+    pressure: [],
+    temperature: [],
+    x: [],
+    y: [],
+    z: [],
+    aX: [],
+    aY: [],
+    aZ: [],
+    gX: [],
+    gY: [],
+    gZ: [],
   };
   rocketInterval: number | null = null;
   isRocketTracking = false;

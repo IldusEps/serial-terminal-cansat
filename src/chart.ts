@@ -1,4 +1,6 @@
-export function getFlightChartParameteres(rocketData) {
+import RocketData from "./rocketData";
+
+export function getFlightChartParameteres(rocketData: RocketData) {
   // Main trajectory trace
   const trajectoryTrace = {
     x: rocketData.x,
@@ -64,7 +66,7 @@ export function getFlightChartParameteres(rocketData) {
   return [[trajectoryTrace, currentPositionTrace], layout];
 }
 
-export function getPressureChartParameteres(rocketData, startPressure: number) {
+export function getPressureChartParameteres(rocketData: RocketData) {
   // Main trajectory trace
   const trajectoryTrace = {
     x: rocketData.time,
@@ -150,7 +152,7 @@ export function getPressureChartParameteres(rocketData, startPressure: number) {
   return [[trajectoryTrace, currentPositionTrace], layout];
 }
 
-export function getAccelerationChartParameteres(rocketData) {
+export function getAccelerationChartParameteres(rocketData: RocketData) {
   // Main trajectory trace
   const trajectoryTrace = {
     x: rocketData.aX,

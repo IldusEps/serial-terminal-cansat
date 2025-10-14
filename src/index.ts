@@ -450,7 +450,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   document
     .getElementById("reset-rocket-view")
     ?.addEventListener("click", rocket.resetRocketView);
-  rocket.startTrackingButton = document.getElementById("start-rocket-chart");
+  rocket.startTrackingButton = document.getElementById(
+    "start-rocket-chart"
+  ) as HTMLElement;
 
   baudRateSelector = document.getElementById("baudrate") as HTMLSelectElement;
   baudRateSelector.addEventListener("input", () => {
