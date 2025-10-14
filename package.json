@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/GoogleChromeLabs/serial-terminal.git"
+    "url": "https://github.com/IldusEps/serial-terminal-cansat.git"
   },
   "dependencies": {
     "@types/w3c-web-serial": "^1.0.3",
