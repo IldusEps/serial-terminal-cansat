@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8"/>
     <style>
       body {
         padding: 0;
@@ -32,6 +33,13 @@
         grid-template-columns: 50% 50%;
         width: 100vw;
       }
+      select:not([multiple]) {
+        border-radius: 15px;
+      }
+      button {        
+        border-radius: 8px;  
+        border-width: 1px;      
+      }    
       .tab-container{
         display: none;
       }
@@ -44,17 +52,17 @@
     </style>
   </head>
   <body>
-    <div class="options">
       <label for="ports">Port:</label>
       <select id="ports">
         <option value="prompt">Click 'Connect' to add a port...</option>
       </select>
-      <button id="connect">Connect</button>
+      <button id="connect" style="background-color: red;">Connect</button>
 
       <button id="download">Download output</button>
       <button id="clear">Clear output</button>
 
-      <button id="chart" color="yellow">Demo</button>
+      <button id="chart" style="background-color: yellow;">Demo</button>
+      <input type="file" id="load" name="file" placeholder="Load data">
 
       <div class="info">
         <a id="polyfill_switcher"></a>
@@ -118,7 +126,7 @@
           >Source Code on GitHub</a
         >
       </div>
-      <button id="start-rocket-chart">Start Tracking</button>
+      <button id="start-rocket-chart" style="background-color: red;">Start Tracking</button>
       <button id="reset-rocket-view">Reset View</button>
     </div>
   </div>
@@ -137,6 +145,9 @@
           <label for="start-pressure" class="ml-5">Start pressure:</label>
           <input id="start-pressure" name="start-pressure" type="number" value="100312">
           <div id="flight-chart"></div>
+          <div>Точка максимума ракеты</div>
+          <div>Высота</div>
+          <div>Время</div>
         </div>
         <div id="pressure-chart" class="tab-container"></div>
         <div id="acceleration-chart" class="tab-container"></div>

@@ -122,6 +122,7 @@ export default class Rocket {
     startPressureElement.disabled = true;
     this.isRocketTracking = true;
     this.startTrackingButton.textContent = "Stop Tracking";
+    this.startTrackingButton.style.backgroundColor = "green";
 
     // Show telemetry info
     const telemetryInfo = document.getElementById("telemetry-info");
@@ -140,6 +141,7 @@ export default class Rocket {
     (document.getElementById("start-pressure") as HTMLInputElement).disabled =
       false;
     this.startTrackingButton.textContent = "Start Tracking";
+    this.startTrackingButton.style.backgroundColor = "red";
 
     // Hide telemetry info
     const telemetryInfo = document.getElementById("telemetry-info");
@@ -227,7 +229,7 @@ export default class Rocket {
   /**
    * Processes serial data for rocket tracking
    */
-  processSerialDataForRocket(data: string): void {
+  processSerialDataForRocket(data: string, update = true): void {
     function calculateAltitudeFromPressure(
       pressure: number,
       seaLevelPressure = 101325,
@@ -284,27 +286,30 @@ export default class Rocket {
     }
 
     if (parsedData) {
-      this.addRocketDataPoint(parsedData);
+      this.addRocketDataPoint(parsedData, update);
     }
   }
 
   /**
    * Adds a new data point to the rocket chart
    */
-  addRocketDataPoint(data: {
-    time: number;
-    pressure: number;
-    temperature: number;
-    x: number;
-    y: number;
-    z: number;
-    aX: number;
-    aY: number;
-    aZ: number;
-    gX: number;
-    gY: number;
-    gZ: number;
-  }): void {
+  addRocketDataPoint(
+    data: {
+      time: number;
+      pressure: number;
+      temperature: number;
+      x: number;
+      y: number;
+      z: number;
+      aX: number;
+      aY: number;
+      aZ: number;
+      gX: number;
+      gY: number;
+      gZ: number;
+    },
+    update = true
+  ): void {
     const maxPoints = 100000;
 
     // Add new data
@@ -332,7 +337,7 @@ export default class Rocket {
     }
 
     // Update chart
-    this.updateRocketChart();
+    if (update) this.updateRocketChart();
 
     // Update telemetry display
     // this.updateTelemetryDisplay();

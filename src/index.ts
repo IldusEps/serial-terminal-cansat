@@ -174,6 +174,38 @@ function downloadTerminalContents(): void {
   fauxLink.click();
 }
 
+function loadContentsToTerminal(e: Event): void {
+  if (!term) {
+    throw new Error("no terminal instance found");
+  }
+
+  const file = (e.target as HTMLInputElement).files[0];
+  console.log(file);
+  const reader = new FileReader();
+
+  reader.readAsText(file);
+
+  reader.onload = function () {
+    const text = (reader.result as string).split(/\r?\n/);
+    console.log(text);
+    text.forEach((stroke, index, array) => {
+      const otherStroke = /<CONNECTED>|<DISCONNECTED>/;
+      if (otherStroke.exec(stroke)) {
+        term.writeln(stroke + " Loaded", () => {
+          if (index == array.length - 1) rocket.updateRocketChart();
+        });
+      } else {
+        term.write(stroke + "\r\n", () => {
+          rocket.processSerialDataForRocket(stroke, false);
+          if (index == array.length - 1) rocket.updateRocketChart();
+        });
+      }
+    });
+    e.preventDefault();
+    (document.getElementById("load") as HTMLInputElement).value = "";
+  };
+}
+
 /**
  * Clear the terminal's contents.
  */
@@ -228,6 +260,7 @@ function markDisconnected(): void {
   term.writeln("<DISCONNECTED>");
   portSelector.disabled = false;
   connectButton.textContent = "Connect";
+  connectButton.style.backgroundColor = "red";
   connectButton.disabled = false;
   baudRateSelector.disabled = false;
   customBaudRateInput.disabled = false;
@@ -279,6 +312,7 @@ async function connectToPort(): Promise<void> {
     await port.open(options);
     term.writeln("<CONNECTED>");
     connectButton.textContent = "Disconnect";
+    connectButton.style.backgroundColor = "green";
     connectButton.disabled = false;
   } catch (e) {
     console.error(e);
@@ -398,6 +432,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     "download"
   ) as HTMLSelectElement;
   downloadOutput.addEventListener("click", downloadTerminalContents);
+
+  (document.getElementById("load") as HTMLInputElement).addEventListener(
+    "change",
+    loadContentsToTerminal
+  );
 
   const clearOutput = document.getElementById("clear") as HTMLSelectElement;
   clearOutput.addEventListener("click", clearTerminalContents);

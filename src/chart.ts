@@ -243,7 +243,7 @@ export function getZAccelerationChartParameteres(rocketData) {
     x: rocketData.time,
     y: rocketData.aZ,
     mode: "lines",
-    type: "bar",
+    type: "scatter",
     name: "ZAcceleration Path",
     line: {
       color: "#1f77b4",
@@ -262,7 +262,7 @@ export function getZAccelerationChartParameteres(rocketData) {
         ? [rocketData.aZ[rocketData.aZ.length - 1]]
         : [0],
     mode: "lines",
-    type: "bar",
+    type: "scatter",
     name: "Current Position",
     marker: {
       color: "#ff0000",
