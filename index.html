@@ -44,9 +44,9 @@
         display: none;
       }
       #tab-btn-1:checked~#flight-chart-cont,
-      #tab-btn-2:checked~#pressure-chart,
+      #tab-btn-2:checked~#pressure-chart-cont,
       #tab-btn-3:checked~#acceleration-chart,
-      #tab-btn-4:checked~#zAcceleration-chart  {
+      #tab-btn-4:checked~#zAcceleration-chart-cont  {
         display: block!important;
       }
     </style>
@@ -144,14 +144,25 @@
         <div id="flight-chart-cont" class="tab-container">          
           <label for="start-pressure" class="ml-5">Start pressure:</label>
           <input id="start-pressure" name="start-pressure" type="number" value="100312">
+
+          <!-- <label for="start-temperature" class="ml-5">Start temperature:</label>
+          <input id="start-temperature" name="start-temperature" type="number" value="293.15"> -->
+
           <div id="flight-chart"></div>
-          <div>Точка максимума ракеты</div>
-          <div>Высота</div>
-          <div>Время</div>
+          <div id="flight-info"></div>
         </div>
-        <div id="pressure-chart" class="tab-container"></div>
+
+        <div id="pressure-chart-cont" class="tab-container">     
+          <div id="pressure-chart"></div>
+          <div id="pressure-info"></div>
+        </div>  
+
         <div id="acceleration-chart" class="tab-container"></div>
-        <div id="zAcceleration-chart" class="tab-container"></div>
+
+        <div id="zAcceleration-chart-cont" class="tab-container">   
+          <div id="zAcceleration-chart"></div>
+          <div id="zAcceleration-info"></div>
+        </div>
       </div>
       <div id="terminal"></div>
     </div>

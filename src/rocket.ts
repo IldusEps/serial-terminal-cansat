@@ -16,6 +16,11 @@ export default class Rocket {
   flightChartContainer: HTMLElement = document.getElementById(
     "flight-chart"
   ) as HTMLElement;
+  flightInfo = document.getElementById("flight-info") as HTMLDivElement;
+  pressureInfo = document.getElementById("pressure-info") as HTMLDivElement;
+  zAccelerationInfo = document.getElementById(
+    "zAcceleration-info"
+  ) as HTMLDivElement;
 
   rocketChart: any = null;
   startPressure = 0;
@@ -356,9 +361,9 @@ export default class Rocket {
 
     // Update trajectory
     let updateTrajectory = {
-      x: [this.rocketData.x],
-      y: [this.rocketData.y],
-      z: [this.rocketData.z],
+      x: [[this.rocketData.x[lastIndex]]],
+      y: [[this.rocketData.y[lastIndex]]],
+      z: [[this.rocketData.z[lastIndex]]],
     };
 
     // Update current position marker
@@ -371,12 +376,18 @@ export default class Rocket {
     Plotly.extendTraces("flight-chart", updateTrajectory, [0]);
     Plotly.restyle("flight-chart", updatePosition, [1]);
 
+    this.flightInfo.innerHTML = `
+          <div>Точка максимума ракеты: ${Math.max(...this.rocketData.z)}</div>
+          <div>Высота: ${this.rocketData.z[lastIndex]}</div>
+          <div>Время: ${this.rocketData.time[lastIndex]}</div>
+    `;
+
     lastIndex = this.rocketData.pressure.length - 1;
 
     // Update trajectory
     updateTrajectory = {
-      x: [this.rocketData.time],
-      y: [this.rocketData.pressure],
+      x: [[this.rocketData.time[lastIndex]]],
+      y: [[this.rocketData.pressure[lastIndex]]],
     };
 
     // Update current position marker
@@ -387,13 +398,21 @@ export default class Rocket {
 
     Plotly.extendTraces("pressure-chart", updateTrajectory, [0]);
     Plotly.restyle("pressure-chart", updatePosition, [1]);
+    Plotly.relayout("pressure-chart", {
+      "yaxis.autorange": true,
+    });
+    this.pressureInfo.innerHTML = `
+    <div>Точка максимума ракеты: ${Math.max(...this.rocketData.pressure)}</div>
+    <div>Давление: ${this.rocketData.pressure[lastIndex]}</div>
+    <div>Время: ${this.rocketData.time[lastIndex]}</div>
+    `;
 
     lastIndex = this.rocketData.aX.length - 1;
 
     // Update trajectory
     updateTrajectory = {
-      x: [this.rocketData.aX],
-      y: [this.rocketData.aY],
+      x: [[this.rocketData.aX[lastIndex]]],
+      y: [[this.rocketData.aY[lastIndex]]],
     };
 
     // Update current position marker
@@ -405,12 +424,16 @@ export default class Rocket {
     Plotly.extendTraces("acceleration-chart", updateTrajectory, [0]);
     Plotly.restyle("acceleration-chart", updatePosition, [1]);
 
+    Plotly.relayout("acceleration-chart", {
+      "yaxis.autorange": true,
+    });
+
     lastIndex = this.rocketData.aZ.length - 1;
 
     // Update trajectory
     updateTrajectory = {
-      x: [this.rocketData.time],
-      y: [this.rocketData.aZ],
+      x: [[this.rocketData.time[lastIndex]]],
+      y: [[this.rocketData.aZ[lastIndex]]],
     };
 
     // Update current position marker
@@ -421,6 +444,16 @@ export default class Rocket {
 
     Plotly.extendTraces("zAcceleration-chart", updateTrajectory, [0]);
     Plotly.restyle("zAcceleration-chart", updatePosition, [1]);
+
+    Plotly.relayout("zAcceleration-chart", {
+      "yaxis.autorange": true,
+    });
+
+    this.zAccelerationInfo.innerHTML = `
+    <div>Точка максимума ракеты: ${Math.max(...this.rocketData.aZ)}</div>
+    <div>Ускорение по Z: ${this.rocketData.aZ[lastIndex]}</div>
+    <div>Время: ${this.rocketData.time[lastIndex]}</div>
+    `;
 
     // Auto-scale the view if it's the first few points
     // if (this.rocketData.x.length <= 10) {

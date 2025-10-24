@@ -132,22 +132,22 @@ export function getPressureChartParameteres(rocketData: RocketData) {
       y: 1.1,
       orientation: "h",
     },
-    shapes: [
-      // Horizontal line at 100000 Pa
-      {
-        type: "line",
-        x0: 0,
-        x1: 1,
-        y0: 100000,
-        y1: 100000,
-        xref: "paper",
-        line: {
-          color: "#2ca02c",
-          width: 1,
-          dash: "dash",
-        },
-      },
-    ],
+    // shapes: [
+    //   // Horizontal line at 100000 Pa
+    //   {
+    //     type: "line",
+    //     x0: 0,
+    //     x1: 1,
+    //     y0: 100000,
+    //     y1: 100000,
+    //     xref: "paper",
+    //     line: {
+    //       color: "#2ca02c",
+    //       width: 1,
+    //       dash: "dash",
+    //     },
+    //   },
+    // ],
   };
   return [[trajectoryTrace, currentPositionTrace], layout];
 }
@@ -218,22 +218,22 @@ export function getAccelerationChartParameteres(rocketData: RocketData) {
       y: 1.1,
       orientation: "h",
     },
-    shapes: [
-      // Horizontal line at 100000 Pa
-      {
-        type: "line",
-        x0: 0,
-        x1: 1,
-        y0: 0,
-        y1: 1,
-        xref: "paper",
-        line: {
-          color: "#2ca02c",
-          width: 1,
-          dash: "dash",
-        },
-      },
-    ],
+    // shapes: [
+    //   // Horizontal line at 100000 Pa
+    //   {
+    //     type: "line",
+    //     x0: 0,
+    //     x1: 1,
+    //     y0: 0,
+    //     y1: 1,
+    //     xref: "paper",
+    //     line: {
+    //       color: "#2ca02c",
+    //       width: 1,
+    //       dash: "dash",
+    //     },
+    //   },
+    // ],
   };
   return [[trajectoryTrace, currentPositionTrace], layout];
 }
@@ -248,7 +248,9 @@ export function getZAccelerationChartParameteres(rocketData) {
     line: {
       color: "#1f77b4",
       width: 3,
+      shape: "linear",
     },
+    connectgaps: false,
   };
 
   // Current position marker
