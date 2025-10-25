@@ -55,13 +55,13 @@ export function getFlightChartParameteres(rocketData: RocketData) {
         // backgroundcolor: "rgb(230, 230, 230)",
       },
       camera: {
-        eye: { x: 0.1, y: 1.1, z: 0.1 },
+        eye: { x: 0.1, y: 2, z: 0.1 },
       },
       aspectratio: { x: 1, y: 1, z: 1 },
     },
     margin: { l: 0, r: 0, b: 0, t: 50 },
-    height: 400,
-    showlegend: true,
+    height: 360,
+    showlegend: false,
   };
   return [[trajectoryTrace, currentPositionTrace], layout];
 }
@@ -125,8 +125,8 @@ export function getPressureChartParameteres(rocketData: RocketData) {
       aspectratio: { x: 1, y: 1, z: 1 },
     },
     margin: { l: 80, r: 50, b: 60, t: 60 },
-    height: 400,
-    showlegend: true,
+    height: 360,
+    showlegend: false,
     legend: {
       x: 0,
       y: 1.1,
@@ -211,8 +211,8 @@ export function getAccelerationChartParameteres(rocketData: RocketData) {
       aspectratio: { x: 1, y: 1, z: 1 },
     },
     margin: { l: 80, r: 50, b: 60, t: 60 },
-    height: 400,
-    showlegend: true,
+    height: 360,
+    showlegend: false,
     legend: {
       x: 0,
       y: 1.1,
@@ -298,8 +298,8 @@ export function getZAccelerationChartParameteres(rocketData) {
       aspectratio: { x: 1, y: 1, z: 1 },
     },
     margin: { l: 80, r: 50, b: 60, t: 60 },
-    height: 400,
-    showlegend: true,
+    height: 360,
+    showlegend: false,
     legend: {
       x: 0,
       y: 1.1,

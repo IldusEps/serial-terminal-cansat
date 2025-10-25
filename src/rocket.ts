@@ -16,6 +16,14 @@ export default class Rocket {
   flightChartContainer: HTMLElement = document.getElementById(
     "flight-chart"
   ) as HTMLElement;
+  startPressureElement = document.getElementById(
+    "start-pressure"
+  ) as HTMLInputElement;
+  minimumPressure = document.getElementById(
+    "minimum-pressure"
+  ) as HTMLButtonElement;
+
+  info = document.getElementById("info") as HTMLDivElement;
   flightInfo = document.getElementById("flight-info") as HTMLDivElement;
   pressureInfo = document.getElementById("pressure-info") as HTMLDivElement;
   zAccelerationInfo = document.getElementById(
@@ -120,11 +128,8 @@ export default class Rocket {
   startRocketTracking(): void {
     if (this.isRocketTracking) return;
 
-    const startPressureElement = document.getElementById(
-      "start-pressure"
-    ) as HTMLInputElement;
-    this.startPressure = Number(startPressureElement.value);
-    startPressureElement.disabled = true;
+    this.startPressure = Number(this.startPressureElement.value);
+    this.startPressureElement.disabled = true;
     this.isRocketTracking = true;
     this.startTrackingButton.textContent = "Stop Tracking";
     this.startTrackingButton.style.backgroundColor = "green";
@@ -203,35 +208,6 @@ export default class Rocket {
   }
 
   /**
-   * Updates telemetry display
-   */
-  //   updateTelemetryDisplay(): void {
-  //     const lastIndex = this.rocketData.x.length - 1;
-
-  //     if (lastIndex >= 0) {
-  //       document.getElementById("pos-x")!.textContent =
-  //         this.rocketData.x[lastIndex].toFixed(2);
-  //       document.getElementById("pos-y")!.textContent =
-  //         this.rocketData.y[lastIndex].toFixed(2);
-  //       document.getElementById("pos-z")!.textContent =
-  //         this.rocketData.z[lastIndex].toFixed(2);
-
-  //       const currentVelocity = this.rocketData.velocity[lastIndex] || 0;
-  //       const currentAcceleration = this.rocketData.acceleration[lastIndex] || 0;
-
-  //       document.getElementById("velocity")!.textContent =
-  //         currentVelocity.toFixed(2);
-  //       document.getElementById("acceleration")!.textContent =
-  //         currentAcceleration.toFixed(2);
-  //     }
-
-  //     document.getElementById("point-count")!.textContent =
-  //       this.rocketData.x.length.toString();
-  //     document.getElementById("last-update")!.textContent =
-  //       new Date().toLocaleTimeString();
-  //   }
-
-  /**
    * Processes serial data for rocket tracking
    */
   processSerialDataForRocket(data: string, update = true): void {
@@ -252,6 +228,12 @@ export default class Rocket {
         (1 - Math.pow(pressure / seaLevelPressure, (R * L) / (g * M)));
 
       return altitude;
+    }
+
+    if (this.minimumPressure.style.backgroundColor == "green") {
+      this.startPressureElement.value = Math.max(
+        ...this.rocketData.pressure
+      ).toString();
     }
 
     if (!this.isRocketTracking) return;
@@ -376,12 +358,6 @@ export default class Rocket {
     Plotly.extendTraces("flight-chart", updateTrajectory, [0]);
     Plotly.restyle("flight-chart", updatePosition, [1]);
 
-    this.flightInfo.innerHTML = `
-          <div>Точка максимума ракеты: ${Math.max(...this.rocketData.z)}</div>
-          <div>Высота: ${this.rocketData.z[lastIndex]}</div>
-          <div>Время: ${this.rocketData.time[lastIndex]}</div>
-    `;
-
     lastIndex = this.rocketData.pressure.length - 1;
 
     // Update trajectory
@@ -402,9 +378,7 @@ export default class Rocket {
       "yaxis.autorange": true,
     });
     this.pressureInfo.innerHTML = `
-    <div>Точка максимума ракеты: ${Math.max(...this.rocketData.pressure)}</div>
-    <div>Давление: ${this.rocketData.pressure[lastIndex]}</div>
-    <div>Время: ${this.rocketData.time[lastIndex]}</div>
+    <div>Минимальное давление: ${Math.min(...this.rocketData.pressure)}</div>
     `;
 
     lastIndex = this.rocketData.aX.length - 1;
@@ -450,9 +424,26 @@ export default class Rocket {
     });
 
     this.zAccelerationInfo.innerHTML = `
-    <div>Точка максимума ракеты: ${Math.max(...this.rocketData.aZ)}</div>
-    <div>Ускорение по Z: ${this.rocketData.aZ[lastIndex]}</div>
-    <div>Время: ${this.rocketData.time[lastIndex]}</div>
+    <div>Наибольшее ускорение: ${Math.max(...this.rocketData.aZ).toFixed(
+      2
+    )}</div>
+    <div>Наименьшее ускорение: ${Math.min(...this.rocketData.aZ).toFixed(
+      2
+    )}</div>
+    `;
+
+    this.info.innerHTML = `
+          <div>Точка максимума ракеты: ${Math.max(...this.rocketData.z).toFixed(
+            2
+          )}</div>
+          <div>Высота: ${this.rocketData.z[lastIndex].toFixed(2)}</div>
+
+          <div>Ускорение по Z: ${this.rocketData.aZ[lastIndex]}</div>
+          <div>Ускорение по X: ${this.rocketData.aX[lastIndex]}</div>
+          <div>Ускорение по Y: ${this.rocketData.aY[lastIndex]}</div>
+          <div>Давление: ${this.rocketData.pressure[lastIndex]}</div>
+          
+          <div>Время: ${this.rocketData.time[lastIndex]}</div>
     `;
 
     // Auto-scale the view if it's the first few points

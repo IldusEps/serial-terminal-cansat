@@ -493,6 +493,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     "start-rocket-chart"
   ) as HTMLElement;
 
+  rocket.minimumPressure.addEventListener("click", () => {
+    rocket.minimumPressure.style.backgroundColor =
+      rocket.minimumPressure.style.backgroundColor == "green" ? "red" : "green";
+  });
+
   baudRateSelector = document.getElementById("baudrate") as HTMLSelectElement;
   baudRateSelector.addEventListener("input", () => {
     if (baudRateSelector.value == "custom") {

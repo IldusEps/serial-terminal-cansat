@@ -2,54 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8"/>
-    <style>
-      body {
-        padding: 0;
-        margin: 0;
-      }
-      * {
-        box-sizing: border-box;
-      }
-      .ml-5 {
-        margin-left: 2em;
-      }
-      #terminal {
-        height: 90vh;
-      }
-      .options {
-        padding: 0.75em;
-      }
-      .info {
-        float: right;
-      }
-      #connect {
-        margin-right: 2em;
-      }
-      label.checkbox {
-        margin-right: 1em;
-      }
-      .elements{
-        display: grid;
-        grid-template-columns: 50% 50%;
-        width: 100vw;
-      }
-      select:not([multiple]) {
-        border-radius: 15px;
-      }
-      button {        
-        border-radius: 8px;  
-        border-width: 1px;      
-      }    
-      .tab-container{
-        display: none;
-      }
-      #tab-btn-1:checked~#flight-chart-cont,
-      #tab-btn-2:checked~#pressure-chart-cont,
-      #tab-btn-3:checked~#acceleration-chart,
-      #tab-btn-4:checked~#zAcceleration-chart-cont  {
-        display: block!important;
-      }
-    </style>
+    <link rel="stylesheet" href="/src/index.css">
   </head>
   <body>
       <label for="ports">Port:</label>
@@ -144,6 +97,7 @@
         <div id="flight-chart-cont" class="tab-container">          
           <label for="start-pressure" class="ml-5">Start pressure:</label>
           <input id="start-pressure" name="start-pressure" type="number" value="100312">
+          <button id="minimum-pressure" style="background-color: green;">Минимум</button>
 
           <!-- <label for="start-temperature" class="ml-5">Start temperature:</label>
           <input id="start-temperature" name="start-temperature" type="number" value="293.15"> -->
@@ -165,7 +119,27 @@
         </div>
       </div>
       <div id="terminal"></div>
+      <div class="info-cont">
+        <div id="info">
+          <div>Точка максимума ракеты:</div>
+          <div>Высота:</div>
+
+          <div>Ускорение по Z:</div>
+          <div>Ускорение по X:</div>
+          <div>Ускорение по Y:</div>
+          <div>Давление:</div>
+          
+          <div>Время:</div>
+        </div>
+        <div>
+          <h1 id="timer">00:00:00</h1>
+          <button id="startBtn">Старт</button>
+          <button id="pauseBtn" disabled>Пауза</button>
+          <button id="resetBtn" disabled>Сброс</button>
+        </div>
+      </div>
     </div>
     <script type="module" src="/src/index.ts"></script>
+    <script type="module" src="/src/stopwatch.ts"></script>
   </body>
 </html>
