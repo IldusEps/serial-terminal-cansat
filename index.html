@@ -14,7 +14,6 @@
       <button id="download">Download output</button>
       <button id="clear">Clear output</button>
 
-      <button id="chart" style="background-color: yellow;">Demo</button>
       <input type="file" id="load" name="file" placeholder="Load data">
 
       <div class="info">
@@ -93,6 +92,8 @@
         <label for="tab-btn-3">Acceleration</label>
         <input id="tab-btn-4" name="tab-btn" type="radio" value="">
         <label for="tab-btn-4">Z-acceleration</label>
+        <input id="tab-btn-5" name="tab-btn" type="radio" value="">
+        <label for="tab-btn-5">Speed</label>
 
         <div id="flight-chart-cont" class="tab-container">          
           <label for="start-pressure" class="ml-5">Start pressure:</label>
@@ -116,9 +117,14 @@
         <div id="zAcceleration-chart-cont" class="tab-container">   
           <div id="zAcceleration-chart"></div>
           <div id="zAcceleration-info"></div>
+        </div>        
+  
+        <div id="speed-chart-cont" class="tab-container">   
+          <div id="speed-chart"></div>
+          <div id="speed-info"></div>
         </div>
       </div>
-      <div id="terminal"></div>
+
       <div class="info-cont">
         <div id="info">
           <div>Точка максимума ракеты:</div>
@@ -137,7 +143,9 @@
           <button id="pauseBtn" disabled>Пауза</button>
           <button id="resetBtn" disabled>Сброс</button>
         </div>
-      </div>
+      </div>   
+      
+      <div id="terminal"></div>   
     </div>
     <script type="module" src="/src/index.ts"></script>
     <script type="module" src="/src/stopwatch.ts"></script>

@@ -322,3 +322,89 @@ export function getZAccelerationChartParameteres(rocketData) {
   };
   return [[trajectoryTrace, currentPositionTrace], layout];
 }
+
+export function getSpeedChartParameters(rocketData) {
+  // Main trajectory trace
+  const trajectoryTrace = {
+    x: rocketData.time,
+    y: rocketData.aZ,
+    mode: "lines",
+    type: "scatter",
+    name: "ZAcceleration Path",
+    line: {
+      color: "#1f77b4",
+      width: 3,
+      shape: "linear",
+    },
+    connectgaps: false,
+  };
+
+  // Current position marker
+  const currentPositionTrace = {
+    x:
+      rocketData.time.length > 0
+        ? [rocketData.time[rocketData.time.length - 1]]
+        : [0],
+    y:
+      rocketData.aZ.length > 0
+        ? [rocketData.aZ[rocketData.aZ.length - 1]]
+        : [0],
+    mode: "lines",
+    type: "scatter",
+    name: "Current Position",
+    marker: {
+      color: "#ff0000",
+      size: 8,
+      dash: "dash",
+    },
+  };
+
+  const layout = {
+    title: "ZAcceleration",
+    scene: {
+      xaxis: {
+        title: "time",
+        // gridcolor: "rgb(255, 255, 255)",
+        // zerolinecolor: "rgb(255, 255, 255)",
+        // showbackground: true,
+        // backgroundcolor: "rgb(230, 230, 230)",
+        showgrid: true,
+      },
+      yaxis: {
+        title: "Z acceleration",
+        // gridcolor: "rgb(255, 255, 255)",
+        // zerolinecolor: "rgb(255, 255, 255)",
+        // showbackground: true,
+        // backgroundcolor: "rgb(230, 230, 230)",
+        showgrid: true,
+      },
+      //   camera: {
+      //     eye: { x: 0.1, y: 1.1, z: 0.1 },
+      //   },
+      aspectratio: { x: 1, y: 1, z: 1 },
+    },
+    margin: { l: 80, r: 50, b: 60, t: 60 },
+    height: 360,
+    showlegend: false,
+    legend: {
+      x: 0,
+      y: 1.1,
+      orientation: "h",
+    },
+    shapes: [
+      // Horizontal line at 100000 Pa
+      {
+        type: "line",
+        x0: 0,
+        x1: 1,
+        xref: "paper",
+        line: {
+          color: "#2ca02c",
+          width: 1,
+          dash: "dash",
+        },
+      },
+    ],
+  };
+  return [[trajectoryTrace, currentPositionTrace], layout];
+}

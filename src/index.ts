@@ -196,7 +196,7 @@ function loadContentsToTerminal(e: Event): void {
         });
       } else {
         term.write(stroke + "\r\n", () => {
-          rocket.processSerialDataForRocket(stroke, false);
+          rocket.processSerialDataForRocket(stroke);
           if (index == array.length - 1) rocket.updateRocketChart();
         });
       }
@@ -454,30 +454,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   chartsButton = document.getElementById("chart") as HTMLButtonElement;
   rocket.initializeRocketChart();
-  chartsButton.addEventListener("click", () => {
-    // setInterval(() => {
-    rocket.rocketPos.x += 1;
-    const aX = 1 + 1 * rocket.rocketPos.x;
-    const pressure = 100312 - 1 * rocket.rocketPos.x;
-    const value =
-      "333;" +
-      pressure.toString() +
-      ";2585;" +
-      aX.toString() +
-      ";" +
-      aX.toString() +
-      ";" +
-      aX.toString() +
-      ";" +
-      aX.toString() +
-      ";" +
-      aX.toString() +
-      ";" +
-      aX.toString();
-    term.write(value + "\n");
-    rocket.processSerialDataForRocket(value);
-    // }, 300);
-  });
   // Rocket chart control handlers
   document
     .getElementById("start-rocket-chart")

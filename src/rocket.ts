@@ -6,6 +6,7 @@ import {
   getFlightChartParameteres,
   getPressureChartParameteres,
   getZAccelerationChartParameteres,
+  getSpeedChartParameters,
 } from "./chart";
 import RocketData from "./rocketData";
 
@@ -29,6 +30,7 @@ export default class Rocket {
   zAccelerationInfo = document.getElementById(
     "zAcceleration-info"
   ) as HTMLDivElement;
+  speedInfo = document.getElementById("speed-info") as HTMLDivElement;
 
   rocketChart: any = null;
   startPressure = 0;
@@ -45,6 +47,7 @@ export default class Rocket {
     gX: [],
     gY: [],
     gZ: [],
+    speed: [],
   };
   rocketInterval: number | null = null;
   isRocketTracking = false;
@@ -120,6 +123,13 @@ export default class Rocket {
       zAccelerationParameters[1],
       config
     );
+    const speedParameters = getSpeedChartParameters(this.rocketData);
+    this.rocketChart = Plotly.newPlot(
+      "speed-chart",
+      speedParameters[0],
+      speedParameters[1],
+      config
+    );
   }
 
   /**
@@ -179,6 +189,7 @@ export default class Rocket {
       x: [],
       y: [],
       z: [],
+      speed: [],
     };
     this.dataPointCount = 0;
     this.lastUpdateTime = 0;
@@ -190,6 +201,7 @@ export default class Rocket {
       Plotly.purge("pressure-chart");
       Plotly.purge("acceleration-chart");
       Plotly.purge("zAcceleration-chart");
+      Plotly.purge("speed-chart");
       this.initializeRocketChart();
     }
 
@@ -251,6 +263,7 @@ export default class Rocket {
       gX: number;
       gY: number;
       gZ: number;
+      speed: number;
     } | null = null;
 
     const xyzValues = data.split(";").map((val) => parseFloat(val.trim()));
@@ -269,6 +282,12 @@ export default class Rocket {
         x: 0,
         y: 0,
         z: calculateAltitudeFromPressure(xyzValues[1], this.startPressure),
+        speed:
+          this.calculateVerticalSpeedFromPressure(
+            xyzValues[1],
+            this.rocketData.pressure[this.rocketData.pressure.length - 1],
+            xyzValues[0] - this.rocketData.time[this.rocketData.time.length - 1]
+          ) * 100,
       };
     }
 
@@ -294,6 +313,7 @@ export default class Rocket {
       gX: number;
       gY: number;
       gZ: number;
+      speed: number;
     },
     update = true
   ): void {
@@ -303,7 +323,7 @@ export default class Rocket {
     this.rocketData.x.push(data.x);
     this.rocketData.y.push(data.y);
     this.rocketData.z.push(data.z);
-    this.rocketData.time.push(Date.now() / 1000); // Current timestamp in seconds
+    this.rocketData.time.push(data.time); // Current timestamp in seconds
     this.rocketData.aX.push(data.aX || 0);
     this.rocketData.aY.push(data.aY || 0);
     this.rocketData.aZ.push(data.aZ || 0);
@@ -312,6 +332,8 @@ export default class Rocket {
     this.rocketData.gZ.push(data.gZ || 0);
     this.rocketData.pressure.push(data.pressure || this.startPressure);
     this.rocketData.temperature.push(data.temperature || 0);
+    this.rocketData.speed.push(Math.round(data.speed));
+    console.log(data.speed);
 
     // Remove old data if exceeding max points
     if (this.rocketData.x.length > maxPoints) {
@@ -321,6 +343,7 @@ export default class Rocket {
       this.rocketData.time.shift();
       this.rocketData.pressure.shift();
       this.rocketData.temperature.shift();
+      this.rocketData.speed.shift();
     }
 
     // Update chart
@@ -432,6 +455,32 @@ export default class Rocket {
     )}</div>
     `;
 
+    lastIndex = this.rocketData.speed.length - 1;
+
+    // Update trajectory
+    updateTrajectory = {
+      x: [[this.rocketData.time[lastIndex]]],
+      y: [[this.rocketData.speed[lastIndex]]],
+    };
+
+    // Update current position marker
+    updatePosition = {
+      x: [[this.rocketData.time[lastIndex]]],
+      y: [[this.rocketData.speed[lastIndex]]],
+    };
+
+    Plotly.extendTraces("speed-chart", updateTrajectory, [0]);
+    Plotly.restyle("speed-chart", updatePosition, [1]);
+
+    Plotly.relayout("speed-chart", {
+      "yaxis.autorange": true,
+    });
+
+    this.speedInfo.innerHTML = `
+<div>Наибольшая скорость: ${Math.max(...this.rocketData.speed).toFixed(2)}</div>
+<div>Наименьшая скорость: ${Math.min(...this.rocketData.speed).toFixed(2)}</div>
+    `;
+
     this.info.innerHTML = `
           <div>Точка максимума ракеты: ${Math.max(...this.rocketData.z).toFixed(
             2
@@ -454,5 +503,51 @@ export default class Rocket {
     //     z: 1.5,
     //   });
     // }
+  }
+
+  /**
+   * Расчет вертикальной скорости по изменению давления
+   * @param {number} currentPressure - Текущее давление (Па)
+   * @param {number} previousPressure - Предыдущее давление (Па)
+   * @param {number} deltaTime - Время между измерениями (миллисекунды)
+   * @param {number} temperature - Температура воздуха (К)
+   * @param {number} seaLevelPressure - Давление на уровне моря (Па)
+   * @returns {number} Вертикальная скорость (м/с, положительная вверх)
+   */
+  calculateVerticalSpeedFromPressure(
+    currentPressure: number,
+    previousPressure: number,
+    deltaTime: number,
+    temperature = 293.15,
+    seaLevelPressure = 101325
+  ) {
+    // Константы
+    const g = 9.80665; // Ускорение свободного падения (м/с²)
+    const M = 0.0289644; // Молярная масса воздуха (кг/моль)
+    const R = 8.31432; // Универсальная газовая постоянная (Дж/(моль·К))
+
+    // Проверка входных данных
+    if (deltaTime <= 0) {
+      console.log("deltaTime must be positive");
+      return 0;
+    }
+    if (previousPressure <= 0 || !previousPressure) {
+      previousPressure = this.startPressure;
+    }
+    if (currentPressure <= 0 || previousPressure <= 0) {
+      console.log("Pressure values must be positive");
+      return 0;
+    }
+
+    // Относительное изменение давления
+    const pressureRatio = currentPressure / previousPressure;
+
+    // Вертикальная скорость через барометрическую формулу
+    const verticalSpeed =
+      ((-(R * temperature) / (g * M)) * Math.log(pressureRatio)) /
+      deltaTime /
+      1000;
+
+    return verticalSpeed;
   }
 }

@@ -11,4 +11,5 @@ export default interface RocketData {
   gX: number[];
   gY: number[];
   gZ: number[];
+  speed: number[];
 }
