@@ -57,7 +57,7 @@ const usePolyfill = urlParams.has("polyfill");
 const bufferSize = 8 * 1024; // 8kB
 
 const term = new Terminal({
-  scrollback: 10_000,
+  scrollback: Number.MAX_SAFE_INTEGER,
 });
 
 const fitAddon = new FitAddon();
@@ -196,7 +196,7 @@ function loadContentsToTerminal(e: Event): void {
         });
       } else {
         term.write(stroke + "\r\n", () => {
-          rocket.processSerialDataForRocket(stroke);
+          rocket.processSerialDataForRocket(stroke, false);
           if (index == array.length - 1) rocket.updateRocketChart();
         });
       }
@@ -452,7 +452,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  chartsButton = document.getElementById("chart") as HTMLButtonElement;
   rocket.initializeRocketChart();
   // Rocket chart control handlers
   document
