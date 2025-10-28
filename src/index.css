@@ -60,9 +60,10 @@ button {
   display: none;
 }
 #tab-btn-1:checked ~ #flight-chart-cont,
-#tab-btn-2:checked ~ #pressure-chart-cont,
-#tab-btn-3:checked ~ #acceleration-chart,
-#tab-btn-4:checked ~ #zAcceleration-chart-cont,
-#tab-btn-5:checked ~ #speed-chart-cont {
+#tab-btn-2:checked ~ #height-chart-cont,
+#tab-btn-3:checked ~ #pressure-chart-cont,
+#tab-btn-4:checked ~ #acceleration-chart,
+#tab-btn-5:checked ~ #zAcceleration-chart-cont,
+#tab-btn-6:checked ~ #speed-chart-cont {
   display: block !important;
 }

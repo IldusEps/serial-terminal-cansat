@@ -7,6 +7,7 @@ import {
   getPressureChartParameteres,
   getZAccelerationChartParameteres,
   getSpeedChartParameters,
+  getHeightChartParameteres,
 } from "./chart";
 import RocketData from "./rocketData";
 
@@ -95,6 +96,15 @@ export default class Rocket {
       flightParameters[1],
       config
     );
+
+    const heightParameters = getHeightChartParameteres(this.rocketData);
+    this.rocketChart = Plotly.newPlot(
+      "height-chart",
+      heightParameters[0],
+      heightParameters[1],
+      config
+    );
+
     const pressureParameters = getPressureChartParameteres(
       this.rocketData,
       this.startPressure
@@ -105,6 +115,7 @@ export default class Rocket {
       pressureParameters[1],
       config
     );
+
     const accelerationParameters = getAccelerationChartParameteres(
       this.rocketData
     );
@@ -114,6 +125,7 @@ export default class Rocket {
       accelerationParameters[1],
       config
     );
+
     const zAccelerationParameters = getZAccelerationChartParameteres(
       this.rocketData
     );
@@ -123,6 +135,7 @@ export default class Rocket {
       zAccelerationParameters[1],
       config
     );
+
     const speedParameters = getSpeedChartParameters(this.rocketData);
     this.rocketChart = Plotly.newPlot(
       "speed-chart",
@@ -202,6 +215,7 @@ export default class Rocket {
       Plotly.purge("acceleration-chart");
       Plotly.purge("zAcceleration-chart");
       Plotly.purge("speed-chart");
+      Plotly.purge("height-chart");
       this.initializeRocketChart();
     }
 
@@ -282,12 +296,11 @@ export default class Rocket {
         x: 0,
         y: 0,
         z: calculateAltitudeFromPressure(xyzValues[1], this.startPressure),
-        speed:
-          this.calculateVerticalSpeedFromPressure(
-            xyzValues[1],
-            this.rocketData.pressure[this.rocketData.pressure.length - 1],
-            xyzValues[0] - this.rocketData.time[this.rocketData.time.length - 1]
-          ) * 100,
+        speed: this.calculateVerticalSpeedFromPressure(
+          xyzValues[1],
+          this.rocketData.pressure[this.rocketData.pressure.length - 1],
+          xyzValues[0] - this.rocketData.time[this.rocketData.time.length - 1]
+        ),
       };
     }
 
@@ -365,14 +378,14 @@ export default class Rocket {
     let lastIndex = this.rocketData.x.length - 1;
 
     // Update trajectory
-    let updateTrajectory = {
+    const updateTrajectory = {
       x: [[this.rocketData.x[lastIndex]]],
       y: [[this.rocketData.y[lastIndex]]],
       z: [[this.rocketData.z[lastIndex]]],
     };
 
     // Update current position marker
-    let updatePosition = {
+    const updatePosition = {
       x: [[this.rocketData.x[lastIndex]]],
       y: [[this.rocketData.y[lastIndex]]],
       z: [[this.rocketData.z[lastIndex]]],
@@ -381,22 +394,39 @@ export default class Rocket {
     Plotly.extendTraces("flight-chart", updateTrajectory, [0]);
     Plotly.restyle("flight-chart", updatePosition, [1]);
 
+    lastIndex = this.rocketData.z.length - 1;
+
+    // Update trajectory
+    let updateTrajectory1 = {
+      x: [[this.rocketData.time[lastIndex]]],
+      y: [[this.rocketData.z[lastIndex]]],
+    };
+
+    // Update current position marker
+    let updatePosition1 = {
+      x: [[this.rocketData.time[lastIndex]]],
+      y: [[this.rocketData.z[lastIndex]]],
+    };
+
+    Plotly.extendTraces("height-chart", updateTrajectory1, [0]);
+    Plotly.restyle("height-chart", updatePosition1, [1]);
+
     lastIndex = this.rocketData.pressure.length - 1;
 
     // Update trajectory
-    updateTrajectory = {
+    updateTrajectory1 = {
       x: [[this.rocketData.time[lastIndex]]],
       y: [[this.rocketData.pressure[lastIndex]]],
     };
 
     // Update current position marker
-    updatePosition = {
+    updatePosition1 = {
       x: [[this.rocketData.time[lastIndex]]],
       y: [[this.rocketData.pressure[lastIndex]]],
     };
 
-    Plotly.extendTraces("pressure-chart", updateTrajectory, [0]);
-    Plotly.restyle("pressure-chart", updatePosition, [1]);
+    Plotly.extendTraces("pressure-chart", updateTrajectory1, [0]);
+    Plotly.restyle("pressure-chart", updatePosition1, [1]);
     Plotly.relayout("pressure-chart", {
       "yaxis.autorange": true,
     });
@@ -407,19 +437,19 @@ export default class Rocket {
     lastIndex = this.rocketData.aX.length - 1;
 
     // Update trajectory
-    updateTrajectory = {
+    updateTrajectory1 = {
       x: [[this.rocketData.aX[lastIndex]]],
       y: [[this.rocketData.aY[lastIndex]]],
     };
 
     // Update current position marker
-    updatePosition = {
+    updatePosition1 = {
       x: [[this.rocketData.aX[lastIndex]]],
       y: [[this.rocketData.aY[lastIndex]]],
     };
 
-    Plotly.extendTraces("acceleration-chart", updateTrajectory, [0]);
-    Plotly.restyle("acceleration-chart", updatePosition, [1]);
+    Plotly.extendTraces("acceleration-chart", updateTrajectory1, [0]);
+    Plotly.restyle("acceleration-chart", updatePosition1, [1]);
 
     Plotly.relayout("acceleration-chart", {
       "yaxis.autorange": true,
@@ -428,19 +458,19 @@ export default class Rocket {
     lastIndex = this.rocketData.aZ.length - 1;
 
     // Update trajectory
-    updateTrajectory = {
+    updateTrajectory1 = {
       x: [[this.rocketData.time[lastIndex]]],
       y: [[this.rocketData.aZ[lastIndex]]],
     };
 
     // Update current position marker
-    updatePosition = {
+    updatePosition1 = {
       x: [[this.rocketData.time[lastIndex]]],
       y: [[this.rocketData.aZ[lastIndex]]],
     };
 
-    Plotly.extendTraces("zAcceleration-chart", updateTrajectory, [0]);
-    Plotly.restyle("zAcceleration-chart", updatePosition, [1]);
+    Plotly.extendTraces("zAcceleration-chart", updateTrajectory1, [0]);
+    Plotly.restyle("zAcceleration-chart", updatePosition1, [1]);
 
     Plotly.relayout("zAcceleration-chart", {
       "yaxis.autorange": true,
@@ -458,19 +488,19 @@ export default class Rocket {
     lastIndex = this.rocketData.speed.length - 1;
 
     // Update trajectory
-    updateTrajectory = {
+    updateTrajectory1 = {
       x: [[this.rocketData.time[lastIndex]]],
       y: [[this.rocketData.speed[lastIndex]]],
     };
 
     // Update current position marker
-    updatePosition = {
+    updatePosition1 = {
       x: [[this.rocketData.time[lastIndex]]],
       y: [[this.rocketData.speed[lastIndex]]],
     };
-
-    Plotly.extendTraces("speed-chart", updateTrajectory, [0]);
-    Plotly.restyle("speed-chart", updatePosition, [1]);
+    console.log(this.rocketData.speed);
+    Plotly.extendTraces("speed-chart", updateTrajectory1, [0]);
+    Plotly.restyle("speed-chart", updatePosition1, [1]);
 
     Plotly.relayout("speed-chart", {
       "yaxis.autorange": true,
@@ -494,15 +524,6 @@ export default class Rocket {
           
           <div>Время: ${this.rocketData.time[lastIndex]}</div>
     `;
-
-    // Auto-scale the view if it's the first few points
-    // if (this.rocketData.x.length <= 10) {
-    //   Plotly.relayout("flight-chart", "scene.camera.eye", {
-    //     x: 1.5,
-    //     y: 1.5,
-    //     z: 1.5,
-    //   });
-    // }
   }
 
   /**
@@ -544,9 +565,8 @@ export default class Rocket {
 
     // Вертикальная скорость через барометрическую формулу
     const verticalSpeed =
-      ((-(R * temperature) / (g * M)) * Math.log(pressureRatio)) /
-      deltaTime /
-      1000;
+      (((R * temperature) / (g * M)) * Math.log(pressureRatio)) /
+      (deltaTime / 1000);
 
     return verticalSpeed;
   }

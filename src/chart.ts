@@ -66,6 +66,89 @@ export function getFlightChartParameteres(rocketData: RocketData) {
   return [[trajectoryTrace, currentPositionTrace], layout];
 }
 
+export function getHeightChartParameteres(rocketData: RocketData) {
+  // Main trajectory trace
+  const trajectoryTrace = {
+    x: rocketData.time,
+    y: rocketData.z,
+    mode: "lines",
+    type: "scatter",
+    name: "Height Path",
+    line: {
+      color: "#1f77b4",
+      width: 3,
+    },
+  };
+
+  // Current position marker
+  const currentPositionTrace = {
+    x:
+      rocketData.time.length > 0
+        ? [rocketData.time[rocketData.time.length - 1]]
+        : [0],
+    y: rocketData.z.length > 0 ? [rocketData.z[rocketData.z.length - 1]] : [0],
+    mode: "lines",
+    type: "scatter",
+    name: "Current Position",
+    marker: {
+      color: "#ff0000",
+      size: 8,
+      dash: "dash",
+    },
+  };
+
+  const layout = {
+    title: "Height",
+    scene: {
+      xaxis: {
+        title: "Time",
+        // gridcolor: "rgb(255, 255, 255)",
+        // zerolinecolor: "rgb(255, 255, 255)",
+        // showbackground: true,
+        // backgroundcolor: "rgb(230, 230, 230)",
+        showgrid: true,
+      },
+      yaxis: {
+        title: "Height",
+        // gridcolor: "rgb(255, 255, 255)",
+        // zerolinecolor: "rgb(255, 255, 255)",
+        // showbackground: true,
+        // backgroundcolor: "rgb(230, 230, 230)",
+        showgrid: true,
+      },
+      //   camera: {
+      //     eye: { x: 0.1, y: 1.1, z: 0.1 },
+      //   },
+      aspectratio: { x: 1, y: 1, z: 1 },
+    },
+    margin: { l: 80, r: 50, b: 60, t: 60 },
+    height: 360,
+    showlegend: false,
+    legend: {
+      x: 0,
+      y: 1.1,
+      orientation: "h",
+    },
+    // shapes: [
+    //   // Horizontal line at 100000 Pa
+    //   {
+    //     type: "line",
+    //     x0: 0,
+    //     x1: 1,
+    //     y0: 100000,
+    //     y1: 100000,
+    //     xref: "paper",
+    //     line: {
+    //       color: "#2ca02c",
+    //       width: 1,
+    //       dash: "dash",
+    //     },
+    //   },
+    // ],
+  };
+  return [[trajectoryTrace, currentPositionTrace], layout];
+}
+
 export function getPressureChartParameteres(rocketData: RocketData) {
   // Main trajectory trace
   const trajectoryTrace = {
@@ -327,7 +410,7 @@ export function getSpeedChartParameters(rocketData) {
   // Main trajectory trace
   const trajectoryTrace = {
     x: rocketData.time,
-    y: rocketData.aZ,
+    y: rocketData.speed,
     mode: "lines",
     type: "scatter",
     name: "ZAcceleration Path",
@@ -347,7 +430,7 @@ export function getSpeedChartParameters(rocketData) {
         : [0],
     y:
       rocketData.aZ.length > 0
-        ? [rocketData.aZ[rocketData.aZ.length - 1]]
+        ? [rocketData.speed[rocketData.aZ.length - 1]]
         : [0],
     mode: "lines",
     type: "scatter",
@@ -371,7 +454,7 @@ export function getSpeedChartParameters(rocketData) {
         showgrid: true,
       },
       yaxis: {
-        title: "Z acceleration",
+        title: "speed",
         // gridcolor: "rgb(255, 255, 255)",
         // zerolinecolor: "rgb(255, 255, 255)",
         // showbackground: true,
