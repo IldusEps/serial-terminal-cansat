@@ -236,7 +236,7 @@ export default class Rocket {
   /**
    * Processes serial data for rocket tracking
    */
-  processSerialDataForRocket(data: string, update = true): void {
+  processSerialDataForRocket(data: object, update = true): void {
     function calculateAltitudeFromPressure(
       pressure: number,
       seaLevelPressure = 101325,
@@ -280,26 +280,16 @@ export default class Rocket {
       speed: number;
     } | null = null;
 
-    const xyzValues = data.split(";").map((val) => parseFloat(val.trim()));
-    xyzValues.pop();
-    if (xyzValues.length >= 5 && xyzValues.every((val) => !isNaN(val))) {
+    if (data) {
       parsedData = {
-        time: xyzValues[0],
-        pressure: xyzValues[1],
-        temperature: xyzValues[2],
-        aX: xyzValues[3],
-        aY: xyzValues[4],
-        aZ: xyzValues[5],
-        gX: xyzValues[6],
-        gY: xyzValues[7],
-        gZ: xyzValues[8],
+        ...{data},
         x: 0,
         y: 0,
-        z: calculateAltitudeFromPressure(xyzValues[1], this.startPressure),
+        z: calculateAltitudeFromPressure(data.pressure, this.startPressure),
         speed: this.calculateVerticalSpeedFromPressure(
-          xyzValues[1],
+          data.pressure,
           this.rocketData.pressure[this.rocketData.pressure.length - 1],
-          xyzValues[0] - this.rocketData.time[this.rocketData.time.length - 1]
+          data.time - this.rocketData.time[this.rocketData.time.length - 1]
         ),
       };
     }

@@ -24,6 +24,7 @@ import {
   SerialPort as SerialPortPolyfill,
 } from "web-serial-polyfill";
 import Rocket from "./rocket";
+import {decodeTelemetry} from "./decode";
 
 /**
  * Elements of the port selection dropdown extend HTMLOptionElement so that
@@ -55,6 +56,7 @@ const rocket = new Rocket();
 const urlParams = new URLSearchParams(window.location.search);
 const usePolyfill = urlParams.has("polyfill");
 const bufferSize = 8 * 1024; // 8kB
+let rawDataBuffer = new Uint8Array(0);
 
 const term = new Terminal({
   scrollback: Number.MAX_SAFE_INTEGER,
@@ -172,6 +174,22 @@ function downloadTerminalContents(): void {
   fauxLink.download = `terminal_content_${new Date().getTime()}.txt`;
   fauxLink.href = linkContent;
   fauxLink.click();
+}
+
+function downloadBitmapContents(): void {
+  if (!term) {
+    throw new Error("no terminal instance found");
+  }
+  if  (rawDataBuffer.length === 0) {
+      alert("Нет сырых данных для сохранения");
+      return;
+  }
+  const blob = new Blob([rawDataBuffer], { type: "application/octet-stream" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `raw_telemetry_${new Date().toISOString()}.bin`;
+  link.click();
+  URL.revokeObjectURL(link.href);
 }
 
 function loadContentsToTerminal(e: Event): void {
@@ -308,6 +326,11 @@ async function connectToPort(): Promise<void> {
   stopBitsSelector.disabled = true;
   flowControlCheckbox.disabled = true;
 
+  rawDataBuffer = new Uint8Array(0);
+parsedLines = [];
+headerAdded = false;
+receiveBuffer = new Uint8Array(0);
+
   try {
     await port.open(options);
     term.writeln("<CONNECTED>");
@@ -324,6 +347,7 @@ async function connectToPort(): Promise<void> {
   }
 
   rocket.startRocketTracking();
+  let receiveBuffer = new Uint8Array(0);
 
   while (port && port.readable) {
     try {
@@ -351,11 +375,51 @@ async function connectToPort(): Promise<void> {
         })();
 
         if (value) {
-          await new Promise<void>((resolve) => {
-            term.write(value, resolve);
-          });
-          const text = new TextDecoder().decode(value);
-          rocket.processSerialDataForRocket(text);
+          // Добавляем новые данные в буфер
+          const newBuffer = new Uint8Array(receiveBuffer.length + value.length);
+          newBuffer.set(receiveBuffer);
+          newBuffer.set(value, receiveBuffer.length);
+          receiveBuffer = newBuffer;
+
+          // Ищем пакеты по маркеру 0xAAAA
+          let offset = 0;
+          while (offset + 32 <= receiveBuffer.length) {
+              const marker = receiveBuffer[offset] | (receiveBuffer[offset+1] << 8);
+              if (marker === 0xAAAA) {
+                  // Берём пакет 32 байта
+                  const packet = receiveBuffer.slice(offset, offset + 32);
+                  
+                  // --- Накопление сырых данных ---
+                  const newRaw = new Uint8Array(rawDataBuffer.length + packet.length);
+                  newRaw.set(rawDataBuffer);
+                  newRaw.set(packet, rawDataBuffer.length);
+                  rawDataBuffer = newRaw;
+                  
+                  // Парсим пакет
+                  const decoded = decodeTelemetry(packet);
+                  if (decoded) {
+                      // Формируем CSV-строку (можно добавить время в читаемом виде)
+                      const csvLine = `${decoded.time},${decoded.temperature},${decoded.pressure},${decoded.aX},${decoded.aY},${decoded.aZ},${decoded.gX},${decoded.gY},${decoded.gZ}`;                      
+                      
+                      // Выводим в терминал (опционально)
+                      term.writeln(csvLine);
+                      
+                      // Передаём в rocket (если нужно)
+                      rocket.processSerialDataForRocket(decoded);
+                  } else {
+                      term.writeln(`[Bad packet at offset ${offset}]`);
+                  }
+                  offset += 32;
+              } else {
+                  // Маркер не найден – пропускаем байт и ищем дальше
+                  offset++;
+              }
+          }
+          
+          // Удаляем обработанные байты из буфера
+          if (offset > 0) {
+              receiveBuffer = receiveBuffer.slice(offset);
+          }
         }
         if (done) {
           break;
@@ -432,6 +496,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     "download"
   ) as HTMLSelectElement;
   downloadOutput.addEventListener("click", downloadTerminalContents);
+  
+  const downloadBitmap = document.getElementById(
+    "download_bitmap"
+  ) as HTMLSelectElement;
+  downloadBitmap.addEventListener("click", downloadBitmapContents);
 
   (document.getElementById("load") as HTMLInputElement).addEventListener(
     "change",
