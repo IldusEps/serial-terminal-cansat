@@ -327,9 +327,9 @@ async function connectToPort(): Promise<void> {
   flowControlCheckbox.disabled = true;
 
   rawDataBuffer = new Uint8Array(0);
-parsedLines = [];
-headerAdded = false;
-receiveBuffer = new Uint8Array(0);
+  // parsedLines = [];
+  // headerAdded = false;
+  let receiveBuffer = new Uint8Array(0);
 
   try {
     await port.open(options);
@@ -347,7 +347,7 @@ receiveBuffer = new Uint8Array(0);
   }
 
   rocket.startRocketTracking();
-  let receiveBuffer = new Uint8Array(0);
+  receiveBuffer = new Uint8Array(0);
 
   while (port && port.readable) {
     try {
@@ -399,7 +399,20 @@ receiveBuffer = new Uint8Array(0);
                   const decoded = decodeTelemetry(packet);
                   if (decoded) {
                       // Формируем CSV-строку (можно добавить время в читаемом виде)
-                      const csvLine = `${decoded.time},${decoded.temperature},${decoded.pressure},${decoded.aX},${decoded.aY},${decoded.aZ},${decoded.gX},${decoded.gY},${decoded.gZ}`;                      
+                      const csvLine = `
+TEAM: ${decoded.teamId}
+
+TIME: ${decoded.time}
+TEMP: ${decoded.temperature}
+PRESSURE: ${decoded.pressure}
+accX: ${decoded.aX}
+accY: ${decoded.aY}
+accZ: ${decoded.aZ}
+gyrX: ${decoded.gX}
+gyrY: ${decoded.gY}
+gyrZ: ${decoded.gZ}
+userData: ${decoded.userData}
+`;                      
                       
                       // Выводим в терминал (опционально)
                       term.writeln(csvLine);
