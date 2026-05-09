@@ -57,6 +57,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const usePolyfill = urlParams.has("polyfill");
 const bufferSize = 8 * 1024; // 8kB
 let rawDataBuffer = new Uint8Array(0);
+let parsingCheckbox: HTMLInputElement;
 
 const term = new Terminal({
   scrollback: Number.MAX_SAFE_INTEGER,
@@ -415,7 +416,13 @@ userData: ${decoded.userData}
 `;                      
                       
                       // Выводим в терминал (опционально)
-                      term.writeln(csvLine);
+                      if (parsingCheckbox.checked){
+                        term.writeln(csvLine);
+                      } else {              
+                        await new Promise<void>((resolve) => {
+                          term.write(value, resolve);
+                        });          
+                      }
                       
                       // Передаём в rocket (если нужно)
                       rocket.processSerialDataForRocket(decoded);
@@ -578,6 +585,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   autoconnectCheckbox = document.getElementById(
     "autoconnect"
   ) as HTMLInputElement;
+  parsingCheckbox = document.getElementById("parsing") as HTMLInputElement;
 
   const convertEolCheckbox = document.getElementById(
     "convert_eol"
