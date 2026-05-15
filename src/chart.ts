@@ -35,24 +35,12 @@ export function getFlightChartParameteres(rocketData: RocketData) {
     scene: {
       xaxis: {
         title: "X - Distance (m)",
-        // gridcolor: "rgb(255, 255, 255)",
-        // zerolinecolor: "rgb(255, 255, 255)",
-        // showbackground: true,
-        // backgroundcolor: "rgb(230, 230, 230)",
       },
       yaxis: {
         title: "Y - Altitude (m)",
-        // gridcolor: "rgb(255, 255, 255)",
-        // zerolinecolor: "rgb(255, 255, 255)",
-        // showbackground: true,
-        // backgroundcolor: "rgb(230, 230, 230)",
       },
       zaxis: {
-        title: "P - Lateral (Pa)",
-        // gridcolor: "rgb(255, 255, 255)",
-        // zerolinecolor: "rgb(255, 255, 255)",
-        // showbackground: true,
-        // backgroundcolor: "rgb(230, 230, 230)",
+        title: "Z - Lateral (m)", // Исправлено: было Pa, но это высота
       },
       camera: {
         eye: { x: 0.1, y: 2, z: 0.1 },
@@ -82,81 +70,48 @@ export function getHeightChartParameteres(rocketData: RocketData) {
 
   // Current position marker
   const currentPositionTrace = {
-    x:
-      rocketData.time.length > 0
-        ? [rocketData.time[rocketData.time.length - 1]]
-        : [0],
+    x: rocketData.time.length > 0 ? [rocketData.time[rocketData.time.length - 1]] : [0],
     y: rocketData.z.length > 0 ? [rocketData.z[rocketData.z.length - 1]] : [0],
-    mode: "lines",
+    mode: "markers", // Исправлено: было "lines", лучше "markers" для позиции
     type: "scatter",
     name: "Current Position",
     marker: {
       color: "#ff0000",
       size: 8,
-      dash: "dash",
+      symbol: "circle",
     },
   };
 
   const layout = {
-    title: "Height",
-    scene: {
-      xaxis: {
-        title: "Time",
-        // gridcolor: "rgb(255, 255, 255)",
-        // zerolinecolor: "rgb(255, 255, 255)",
-        // showbackground: true,
-        // backgroundcolor: "rgb(230, 230, 230)",
-        showgrid: true,
-      },
-      yaxis: {
-        title: "Height",
-        // gridcolor: "rgb(255, 255, 255)",
-        // zerolinecolor: "rgb(255, 255, 255)",
-        // showbackground: true,
-        // backgroundcolor: "rgb(230, 230, 230)",
-        showgrid: true,
-      },
-      //   camera: {
-      //     eye: { x: 0.1, y: 1.1, z: 0.1 },
-      //   },
-      aspectratio: { x: 1, y: 1, z: 1 },
+    title: "Height vs Time",
+    xaxis: {
+      title: "Time (ms)",
+      showgrid: true,
+    },
+    yaxis: {
+      title: "Height (m)",
+      showgrid: true,
     },
     margin: { l: 80, r: 50, b: 60, t: 60 },
     height: 360,
-    showlegend: false,
+    showlegend: true,
     legend: {
       x: 0,
       y: 1.1,
       orientation: "h",
     },
-    // shapes: [
-    //   // Horizontal line at 100000 Pa
-    //   {
-    //     type: "line",
-    //     x0: 0,
-    //     x1: 1,
-    //     y0: 100000,
-    //     y1: 100000,
-    //     xref: "paper",
-    //     line: {
-    //       color: "#2ca02c",
-    //       width: 1,
-    //       dash: "dash",
-    //     },
-    //   },
-    // ],
   };
   return [[trajectoryTrace, currentPositionTrace], layout];
 }
 
-export function getPressureChartParameteres(rocketData: RocketData) {
+export function getPressureChartParameteres(rocketData: RocketData, startPressure?: number) {
   // Main trajectory trace
   const trajectoryTrace = {
     x: rocketData.time,
     y: rocketData.pressure,
     mode: "lines",
     type: "scatter",
-    name: "Pressure Path",
+    name: "Pressure",
     line: {
       color: "#1f77b4",
       width: 3,
@@ -165,84 +120,66 @@ export function getPressureChartParameteres(rocketData: RocketData) {
 
   // Current position marker
   const currentPositionTrace = {
-    x:
-      rocketData.time.length > 0
-        ? [rocketData.time[rocketData.time.length - 1]]
-        : [0],
-    y:
-      rocketData.pressure.length > 0
-        ? [rocketData.pressure[rocketData.pressure.length - 1]]
-        : [103000],
-    mode: "lines",
+    x: rocketData.time.length > 0 ? [rocketData.time[rocketData.time.length - 1]] : [0],
+    y: rocketData.pressure.length > 0 ? [rocketData.pressure[rocketData.pressure.length - 1]] : [101325],
+    mode: "markers",
     type: "scatter",
     name: "Current Position",
     marker: {
       color: "#ff0000",
       size: 8,
-      dash: "dash",
+      symbol: "circle",
     },
   };
 
   const layout = {
-    title: "Pressure",
-    scene: {
-      xaxis: {
-        title: "Time",
-        // gridcolor: "rgb(255, 255, 255)",
-        // zerolinecolor: "rgb(255, 255, 255)",
-        // showbackground: true,
-        // backgroundcolor: "rgb(230, 230, 230)",
-        showgrid: true,
-      },
-      yaxis: {
-        title: "Pressure",
-        // gridcolor: "rgb(255, 255, 255)",
-        // zerolinecolor: "rgb(255, 255, 255)",
-        // showbackground: true,
-        // backgroundcolor: "rgb(230, 230, 230)",
-        showgrid: true,
-      },
-      //   camera: {
-      //     eye: { x: 0.1, y: 1.1, z: 0.1 },
-      //   },
-      aspectratio: { x: 1, y: 1, z: 1 },
+    title: "Pressure vs Time",
+    xaxis: {
+      title: "Time (ms)",
+      showgrid: true,
+    },
+    yaxis: {
+      title: "Pressure (Pa)",
+      showgrid: true,
     },
     margin: { l: 80, r: 50, b: 60, t: 60 },
     height: 360,
-    showlegend: false,
+    showlegend: true,
     legend: {
       x: 0,
       y: 1.1,
       orientation: "h",
     },
-    // shapes: [
-    //   // Horizontal line at 100000 Pa
-    //   {
-    //     type: "line",
-    //     x0: 0,
-    //     x1: 1,
-    //     y0: 100000,
-    //     y1: 100000,
-    //     xref: "paper",
-    //     line: {
-    //       color: "#2ca02c",
-    //       width: 1,
-    //       dash: "dash",
-    //     },
-    //   },
-    // ],
   };
+  
+  // Добавляем линию стартового давления, если оно передано
+  if (startPressure && startPressure > 0) {
+    layout.shapes = [{
+      type: "line",
+      x0: 0,
+      x1: 1,
+      xref: "paper",
+      y0: startPressure,
+      y1: startPressure,
+      line: {
+        color: "#ff0000",
+        width: 2,
+        dash: "dash",
+      },
+    }];
+  }
+  
   return [[trajectoryTrace, currentPositionTrace], layout];
 }
 
 export function getAccelerationChartParameteres(rocketData: RocketData) {
-  // Main trajectory trace
+  // Main trajectory trace (XY acceleration)
   const trajectoryTrace = {
     x: rocketData.aX,
     y: rocketData.aY,
     mode: "lines",
     type: "scatter",
-    name: "Acceleration Path",
+    name: "Horizontal Acceleration",
     line: {
       color: "#1f77b4",
       width: 3,
@@ -251,243 +188,172 @@ export function getAccelerationChartParameteres(rocketData: RocketData) {
 
   // Current position marker
   const currentPositionTrace = {
-    x:
-      rocketData.aX.length > 0
-        ? [rocketData.aX[rocketData.aX.length - 1]]
-        : [0],
-    y:
-      rocketData.aY.length > 0
-        ? [rocketData.aY[rocketData.aY.length - 1]]
-        : [0],
-    mode: "lines",
+    x: rocketData.aX.length > 0 ? [rocketData.aX[rocketData.aX.length - 1]] : [0],
+    y: rocketData.aY.length > 0 ? [rocketData.aY[rocketData.aY.length - 1]] : [0],
+    mode: "markers",
     type: "scatter",
     name: "Current Position",
     marker: {
       color: "#ff0000",
-      size: 8,
-      dash: "dash",
+      size: 10,
+      symbol: "circle",
     },
   };
 
   const layout = {
-    title: "Acceleration",
-    scene: {
-      xaxis: {
-        title: "X acceleration",
-        // gridcolor: "rgb(255, 255, 255)",
-        // zerolinecolor: "rgb(255, 255, 255)",
-        // showbackground: true,
-        // backgroundcolor: "rgb(230, 230, 230)",
-        showgrid: true,
-      },
-      yaxis: {
-        title: "Y acceleration",
-        // gridcolor: "rgb(255, 255, 255)",
-        // zerolinecolor: "rgb(255, 255, 255)",
-        // showbackground: true,
-        // backgroundcolor: "rgb(230, 230, 230)",
-        showgrid: true,
-      },
-      //   camera: {
-      //     eye: { x: 0.1, y: 1.1, z: 0.1 },
-      //   },
-      aspectratio: { x: 1, y: 1, z: 1 },
+    title: "Horizontal Acceleration (X vs Y)",
+    xaxis: {
+      title: "X Acceleration (m/s²)",
+      showgrid: true,
+      zeroline: true,
+    },
+    yaxis: {
+      title: "Y Acceleration (m/s²)",
+      showgrid: true,
+      zeroline: true,
     },
     margin: { l: 80, r: 50, b: 60, t: 60 },
     height: 360,
-    showlegend: false,
+    showlegend: true,
     legend: {
       x: 0,
       y: 1.1,
       orientation: "h",
     },
-    // shapes: [
-    //   // Horizontal line at 100000 Pa
-    //   {
-    //     type: "line",
-    //     x0: 0,
-    //     x1: 1,
-    //     y0: 0,
-    //     y1: 1,
-    //     xref: "paper",
-    //     line: {
-    //       color: "#2ca02c",
-    //       width: 1,
-    //       dash: "dash",
-    //     },
-    //   },
-    // ],
   };
   return [[trajectoryTrace, currentPositionTrace], layout];
 }
-export function getZAccelerationChartParameteres(rocketData) {
+
+export function getZAccelerationChartParameteres(rocketData: RocketData) {
   // Main trajectory trace
   const trajectoryTrace = {
     x: rocketData.time,
     y: rocketData.aZ,
     mode: "lines",
     type: "scatter",
-    name: "ZAcceleration Path",
+    name: "Vertical Acceleration",
     line: {
       color: "#1f77b4",
       width: 3,
-      shape: "linear",
     },
     connectgaps: false,
   };
 
   // Current position marker
   const currentPositionTrace = {
-    x:
-      rocketData.time.length > 0
-        ? [rocketData.time[rocketData.time.length - 1]]
-        : [0],
-    y:
-      rocketData.aZ.length > 0
-        ? [rocketData.aZ[rocketData.aZ.length - 1]]
-        : [0],
-    mode: "lines",
+    x: rocketData.time.length > 0 ? [rocketData.time[rocketData.time.length - 1]] : [0],
+    y: rocketData.aZ.length > 0 ? [rocketData.aZ[rocketData.aZ.length - 1]] : [0],
+    mode: "markers",
     type: "scatter",
     name: "Current Position",
     marker: {
       color: "#ff0000",
       size: 8,
-      dash: "dash",
+      symbol: "circle",
     },
   };
 
   const layout = {
-    title: "ZAcceleration",
-    scene: {
-      xaxis: {
-        title: "time",
-        // gridcolor: "rgb(255, 255, 255)",
-        // zerolinecolor: "rgb(255, 255, 255)",
-        // showbackground: true,
-        // backgroundcolor: "rgb(230, 230, 230)",
-        showgrid: true,
-      },
-      yaxis: {
-        title: "Z acceleration",
-        // gridcolor: "rgb(255, 255, 255)",
-        // zerolinecolor: "rgb(255, 255, 255)",
-        // showbackground: true,
-        // backgroundcolor: "rgb(230, 230, 230)",
-        showgrid: true,
-      },
-      //   camera: {
-      //     eye: { x: 0.1, y: 1.1, z: 0.1 },
-      //   },
-      aspectratio: { x: 1, y: 1, z: 1 },
+    title: "Vertical Acceleration vs Time",
+    xaxis: {
+      title: "Time (ms)",
+      showgrid: true,
+      zeroline: true,
+    },
+    yaxis: {
+      title: "Z Acceleration (m/s²)",
+      showgrid: true,
+      zeroline: true,
     },
     margin: { l: 80, r: 50, b: 60, t: 60 },
     height: 360,
-    showlegend: false,
+    showlegend: true,
     legend: {
       x: 0,
       y: 1.1,
       orientation: "h",
     },
-    shapes: [
-      // Horizontal line at 100000 Pa
-      {
-        type: "line",
-        x0: 0,
-        x1: 1,
-        xref: "paper",
-        line: {
-          color: "#2ca02c",
-          width: 1,
-          dash: "dash",
-        },
+    // Горизонтальная линия на уровне 0 (нулевое ускорение)
+    shapes: [{
+      type: "line",
+      x0: 0,
+      x1: 1,
+      xref: "paper",
+      y0: 0,
+      y1: 0,
+      line: {
+        color: "#2ca02c",
+        width: 1,
+        dash: "dash",
       },
-    ],
+    }],
   };
   return [[trajectoryTrace, currentPositionTrace], layout];
 }
 
-export function getSpeedChartParameters(rocketData) {
-  // Main trajectory trace
+export function getSpeedChartParameters(rocketData: RocketData) {
+  // Main trajectory trace - ИСПРАВЛЕНО: используем speed вместо aZ
   const trajectoryTrace = {
     x: rocketData.time,
     y: rocketData.speed,
     mode: "lines",
     type: "scatter",
-    name: "ZAcceleration Path",
+    name: "Speed",
     line: {
       color: "#1f77b4",
       width: 3,
-      shape: "linear",
     },
     connectgaps: false,
   };
 
-  // Current position marker
+  // Current position marker - ИСПРАВЛЕНО: используем speed
   const currentPositionTrace = {
-    x:
-      rocketData.time.length > 0
-        ? [rocketData.time[rocketData.time.length - 1]]
-        : [0],
-    y:
-      rocketData.aZ.length > 0
-        ? [rocketData.speed[rocketData.aZ.length - 1]]
-        : [0],
-    mode: "lines",
+    x: rocketData.time.length > 0 ? [rocketData.time[rocketData.time.length - 1]] : [0],
+    y: rocketData.speed.length > 0 ? [rocketData.speed[rocketData.speed.length - 1]] : [0],
+    mode: "markers",
     type: "scatter",
     name: "Current Position",
     marker: {
       color: "#ff0000",
       size: 8,
-      dash: "dash",
+      symbol: "circle",
     },
   };
 
   const layout = {
-    title: "ZAcceleration",
-    scene: {
-      xaxis: {
-        title: "time",
-        // gridcolor: "rgb(255, 255, 255)",
-        // zerolinecolor: "rgb(255, 255, 255)",
-        // showbackground: true,
-        // backgroundcolor: "rgb(230, 230, 230)",
-        showgrid: true,
-      },
-      yaxis: {
-        title: "speed",
-        // gridcolor: "rgb(255, 255, 255)",
-        // zerolinecolor: "rgb(255, 255, 255)",
-        // showbackground: true,
-        // backgroundcolor: "rgb(230, 230, 230)",
-        showgrid: true,
-      },
-      //   camera: {
-      //     eye: { x: 0.1, y: 1.1, z: 0.1 },
-      //   },
-      aspectratio: { x: 1, y: 1, z: 1 },
+    title: "Speed vs Time",
+    xaxis: {
+      title: "Time (ms)",
+      showgrid: true,
+      zeroline: true,
+    },
+    yaxis: {
+      title: "Speed (m/s)",
+      showgrid: true,
+      zeroline: true,
     },
     margin: { l: 80, r: 50, b: 60, t: 60 },
     height: 360,
-    showlegend: false,
+    showlegend: true,
     legend: {
       x: 0,
       y: 1.1,
       orientation: "h",
     },
-    shapes: [
-      // Horizontal line at 100000 Pa
-      {
-        type: "line",
-        x0: 0,
-        x1: 1,
-        xref: "paper",
-        line: {
-          color: "#2ca02c",
-          width: 1,
-          dash: "dash",
-        },
+    // Горизонтальная линия на уровне 0
+    shapes: [{
+      type: "line",
+      x0: 0,
+      x1: 1,
+      xref: "paper",
+      y0: 0,
+      y1: 0,
+      line: {
+        color: "#2ca02c",
+        width: 1,
+        dash: "dash",
       },
-    ],
+    }],
   };
   return [[trajectoryTrace, currentPositionTrace], layout];
 }

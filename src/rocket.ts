@@ -36,19 +36,21 @@ export default class Rocket {
   rocketChart: any = null;
   startPressure = 0;
   rocketData: RocketData = {
-    time: [],
-    pressure: [],
-    temperature: [],
-    x: [],
-    y: [],
-    z: [],
-    aX: [],
-    aY: [],
-    aZ: [],
-    gX: [],
-    gY: [],
-    gZ: [],
-    speed: [],
+      time: [],
+      pressure: [],
+      temperature: [],
+      x: [],
+      y: [],
+      z: [],
+      aX: [],
+      aY: [],
+      aZ: [],
+      gX: [],
+      gY: [],
+      gZ: [],
+      speed: [],
+      latitude: [],  
+      longitude: []
   };
   rocketInterval: number | null = null;
   isRocketTracking = false;
@@ -175,6 +177,7 @@ export default class Rocket {
       false;
     this.startTrackingButton.textContent = "Start Tracking";
     this.startTrackingButton.style.backgroundColor = "red";
+    this.startPressureElement.disabled = false;
 
     // Hide telemetry info
     const telemetryInfo = document.getElementById("telemetry-info");
@@ -236,127 +239,175 @@ export default class Rocket {
   /**
    * Processes serial data for rocket tracking
    */
-  processSerialDataForRocket(data: object, update = true): void {
+  /**
+ * Processes serial data for rocket tracking
+ */
+processSerialDataForRocket(data: any, update = true): void {
     function calculateAltitudeFromPressure(
-      pressure: number,
-      seaLevelPressure = 101325,
-      seaLevelTemperature = 293.15
+        pressure: number,
+        seaLevelPressure = 101325,
+        seaLevelTemperature = 293.15
     ) {
-      // Constants
-      const L = 0.0065; // Temperature lapse rate (K/m)
-      const g = 9.80665; // Gravitational acceleration (m/s²)
-      const M = 0.0289644; // Molar mass of Earth's air (kg/mol)
-      const R = 8.31432; // Universal gas constant (J/(mol·K))
+        const L = 0.0065; // Temperature lapse rate (K/m)
+        const g = 9.80665; // Gravitational acceleration (m/s²)
+        const M = 0.0289644; // Molar mass of Earth's air (kg/mol)
+        const R = 8.31432; // Universal gas constant (J/(mol·K))
 
-      // Barometric formula for altitude
-      const altitude =
-        (seaLevelTemperature / L) *
-        (1 - Math.pow(pressure / seaLevelPressure, (R * L) / (g * M)));
+        const altitude =
+            (seaLevelTemperature / L) *
+            (1 - Math.pow(pressure / seaLevelPressure, (R * L) / (g * M)));
 
-      return altitude;
+        return altitude;
     }
 
     if (this.minimumPressure.style.backgroundColor == "green") {
-      this.startPressureElement.value = Math.max(
-        ...this.rocketData.pressure
-      ).toString();
+        if (this.rocketData.pressure.length < 10) {
+            this.startPressureElement.value = Math.max(
+                ...this.rocketData.pressure
+            ).toString();
+        }
     }
 
     if (!this.isRocketTracking) return;
 
-    let parsedData: {
-      time: number;
-      pressure: number;
-      temperature: number;
-      x: number;
-      y: number;
-      z: number;
-      aX: number;
-      aY: number;
-      aZ: number;
-      gX: number;
-      gY: number;
-      gZ: number;
-      speed: number;
-    } | null = null;
+    // Проверяем, что данные получены и имеют нужные поля
+    if (!data) return;
 
-    if (data) {
-      parsedData = {
-        ...{data},
-        x: 0,
-        y: 0,
-        z: calculateAltitudeFromPressure(data.pressure, this.startPressure),
-        speed: this.calculateVerticalSpeedFromPressure(
-          data.pressure,
-          this.rocketData.pressure[this.rocketData.pressure.length - 1],
-          data.time - this.rocketData.time[this.rocketData.time.length - 1]
-        ),
-      };
+    // Получаем значения с учётом нового формата
+    const pressure = data.pressure || data.pressurePa || 0;
+    const temperature = data.temperature || data.temperatureC || 0;
+    const time = data.time || data.timeMs || 0;
+    
+    // Ускорения могут быть уже в физических величинах или в сырых значениях
+    let aX = data.aX || data.acceleration?.x || 0;
+    let aY = data.aY || data.acceleration?.y || 0;
+    let aZ = data.aZ || data.acceleration?.z || 0;
+    
+    // Если это сырые значения из decodeTelemetry (int16), конвертируем
+    if (typeof aX === 'number' && Math.abs(aX) > 1000 && aX !== 0) {
+        aX = aX / 1000.0;
+        aY = aY / 1000.0;
+        aZ = aZ / 1000.0;
+    }
+    
+    // Гироскопы
+    let gX = data.gX || data.gyroscope?.x || 0;
+    let gY = data.gY || data.gyroscope?.y || 0;
+    let gZ = data.gZ || data.gyroscope?.z || 0;
+    
+    if (typeof gX === 'number' && Math.abs(gX) > 100 && gX !== 0) {
+        gX = gX / 10.0;
+        gY = gY / 10.0;
+        gZ = gZ / 10.0;
     }
 
-    if (parsedData) {
-      this.addRocketDataPoint(parsedData, update);
+    // Рассчитываем высоту из давления
+    const altitude = calculateAltitudeFromPressure(pressure, this.startPressure);
+    
+    // Рассчитываем скорость
+    let speed = 0;
+    if (this.rocketData.pressure.length > 0 && this.rocketData.time.length > 0) {
+        const previousPressure = this.rocketData.pressure[this.rocketData.pressure.length - 1];
+        const previousTime = this.rocketData.time[this.rocketData.time.length - 1];
+        const deltaTime = time - previousTime;
+        if (deltaTime > 0) {
+            speed = this.calculateVerticalSpeedFromPressure(
+                pressure,
+                previousPressure,
+                deltaTime
+            );
+        }
     }
-  }
+
+    const parsedData = {
+        time: time,
+        pressure: pressure,
+        temperature: temperature,
+        x: data.x || 0,
+        y: data.y || 0,
+        z: altitude,
+        aX: aX,
+        aY: aY,
+        aZ: aZ,
+        gX: gX,
+        gY: gY,
+        gZ: gZ,
+        speed: speed,
+        // Сохраняем GPS данные, если есть
+        gps: data.gps || { latitude: 0, longitude: 0 }
+    };
+
+    this.addRocketDataPoint(parsedData, update);
+}
 
   /**
    * Adds a new data point to the rocket chart
    */
   addRocketDataPoint(
     data: {
-      time: number;
-      pressure: number;
-      temperature: number;
-      x: number;
-      y: number;
-      z: number;
-      aX: number;
-      aY: number;
-      aZ: number;
-      gX: number;
-      gY: number;
-      gZ: number;
-      speed: number;
+        time: number;
+        pressure: number;
+        temperature: number;
+        x: number;
+        y: number;
+        z: number;
+        aX: number;
+        aY: number;
+        aZ: number;
+        gX: number;
+        gY: number;
+        gZ: number;
+        speed: number;
+        gps?: { latitude: number; longitude: number };
     },
     update = true
   ): void {
-    const maxPoints = 100000;
+      const maxPoints = 100000;
 
-    // Add new data
-    this.rocketData.x.push(data.x);
-    this.rocketData.y.push(data.y);
-    this.rocketData.z.push(data.z);
-    this.rocketData.time.push(data.time); // Current timestamp in seconds
-    this.rocketData.aX.push(data.aX || 0);
-    this.rocketData.aY.push(data.aY || 0);
-    this.rocketData.aZ.push(data.aZ || 0);
-    this.rocketData.gX.push(data.gX || 0);
-    this.rocketData.gY.push(data.gY || 0);
-    this.rocketData.gZ.push(data.gZ || 0);
-    this.rocketData.pressure.push(data.pressure || this.startPressure);
-    this.rocketData.temperature.push(data.temperature || 0);
-    this.rocketData.speed.push(Math.round(data.speed));
-    console.log(data.speed);
+      // Add new data
+      this.rocketData.x.push(data.x);
+      this.rocketData.y.push(data.y);
+      this.rocketData.z.push(data.z);
+      this.rocketData.time.push(data.time);
+      this.rocketData.aX.push(data.aX || 0);
+      this.rocketData.aY.push(data.aY || 0);
+      this.rocketData.aZ.push(data.aZ || 0);
+      this.rocketData.gX.push(data.gX || 0);
+      this.rocketData.gY.push(data.gY || 0);
+      this.rocketData.gZ.push(data.gZ || 0);
+      this.rocketData.pressure.push(data.pressure);
+      this.rocketData.temperature.push(data.temperature || 0);
+      this.rocketData.speed.push(Math.round(data.speed));
+      
+      // Добавляем GPS данные если есть
+      if (data.gps) {
+          this.rocketData.latitude.push(data.gps.latitude);
+          this.rocketData.longitude.push(data.gps.longitude);
+      } else if (this.rocketData.latitude) {
+          this.rocketData.latitude.push(this.rocketData.latitude[this.rocketData.latitude.length - 1] || 0);
+          this.rocketData.longitude.push(this.rocketData.longitude[this.rocketData.longitude.length - 1] || 0);
+      }
 
-    // Remove old data if exceeding max points
-    if (this.rocketData.x.length > maxPoints) {
-      this.rocketData.x.shift();
-      this.rocketData.y.shift();
-      this.rocketData.z.shift();
-      this.rocketData.time.shift();
-      this.rocketData.pressure.shift();
-      this.rocketData.temperature.shift();
-      this.rocketData.speed.shift();
-    }
+      // Remove old data if exceeding max points
+      if (this.rocketData.x.length > maxPoints) {
+          this.rocketData.x.shift();
+          this.rocketData.y.shift();
+          this.rocketData.z.shift();
+          this.rocketData.time.shift();
+          this.rocketData.pressure.shift();
+          this.rocketData.temperature.shift();
+          this.rocketData.speed.shift();
+          if (this.rocketData.latitude) {
+              this.rocketData.latitude.shift();
+              this.rocketData.longitude.shift();
+          }
+      }
 
-    // Update chart
-    if (update) this.updateRocketChart();
+      // Update chart
+      if (update) this.updateRocketChart();
 
-    // Update telemetry display
-    // this.updateTelemetryDisplay();
-
-    this.dataPointCount++;
-    this.lastUpdateTime = Date.now();
+      this.dataPointCount++;
+      this.lastUpdateTime = Date.now();
   }
 
   /**
@@ -488,7 +539,6 @@ export default class Rocket {
       x: [[this.rocketData.time[lastIndex]]],
       y: [[this.rocketData.speed[lastIndex]]],
     };
-    console.log(this.rocketData.speed);
     Plotly.extendTraces("speed-chart", updateTrajectory1, [0]);
     Plotly.restyle("speed-chart", updatePosition1, [1]);
 

@@ -384,57 +384,49 @@ async function connectToPort(): Promise<void> {
 
           // Ищем пакеты по маркеру 0xAAAA
           let offset = 0;
-          while (offset + 32 <= receiveBuffer.length) {
-              const marker = receiveBuffer[offset] | (receiveBuffer[offset+1] << 8);
-              if (marker === 0xAAAA) {
-                  // Берём пакет 32 байта
-                  const packet = receiveBuffer.slice(offset, offset + 32);
-                  
-                  // --- Накопление сырых данных ---
-                  const newRaw = new Uint8Array(rawDataBuffer.length + packet.length);
-                  newRaw.set(rawDataBuffer);
-                  newRaw.set(packet, rawDataBuffer.length);
-                  rawDataBuffer = newRaw;
-                  
-                  // Парсим пакет
-                  const decoded = decodeTelemetry(packet);
-                  if (decoded) {
-                      // Формируем CSV-строку (можно добавить время в читаемом виде)
-                      const csvLine = `
-TEAM: ${decoded.teamId}
-
-TIME: ${decoded.time}
-TEMP: ${decoded.temperature}
-PRESSURE: ${decoded.pressure}
-accX: ${decoded.aX}
-accY: ${decoded.aY}
-accZ: ${decoded.aZ}
-gyrX: ${decoded.gX}
-gyrY: ${decoded.gY}
-gyrZ: ${decoded.gZ}
-userData: ${decoded.userData}
-`;                      
-                      
-                      // Выводим в терминал (опционально)
-                      if (parsingCheckbox.checked){
-                        term.writeln(csvLine);
-                      } else {              
-                        await new Promise<void>((resolve) => {
-                          term.write(value, resolve);
-                        });          
-                      }
-                      
-                      // Передаём в rocket (если нужно)
-                      rocket.processSerialDataForRocket(decoded);
-                  } else {
-                      term.writeln(`[Bad packet at offset ${offset}]`);
-                  }
-                  offset += 32;
-              } else {
-                  // Маркер не найден – пропускаем байт и ищем дальше
-                  offset++;
+          if (parsingCheckbox.checked) {
+            while (offset + 64 <= receiveBuffer.length) {
+                const marker = receiveBuffer[offset] | (receiveBuffer[offset+1] << 8);
+                if (marker === 0xAAAA) {
+                    // Берём пакет 32 байта
+                    const packet = receiveBuffer.slice(offset, offset + 64);
+                    
+                    // --- Накопление сырых данных ---
+                    const newRaw = new Uint8Array(rawDataBuffer.length + packet.length);
+                    newRaw.set(rawDataBuffer);
+                    newRaw.set(packet, rawDataBuffer.length);
+                    rawDataBuffer = newRaw;
+                    
+                    // Парсим пакет
+                    const decoded = decodeTelemetry(packet);
+                    // Вместо текущего кода (примерно строки 347-365):
+                    if (decoded) {
+                        // Форматируем вывод в терминал с правильными полями
+                        let output = `[${decoded.time}ms] T:${(decoded.temperature / 100.0).toFixed(2)}°C ` +
+                                      `P:${(decoded.pressure).toFixed(1)}Pa ` +
+                                      `A(${(decoded.aX / 1000.0).toFixed(3)},${(decoded.aY / 1000.0).toFixed(3)},${(decoded.aZ / 1000.0).toFixed(3)}) ` +
+                                      `G(${(decoded.gX / 10.0).toFixed(1)},${(decoded.gY / 10.0).toFixed(1)},${(decoded.gZ / 10.0).toFixed(1)})`;
+                        
+                        if (decoded.gps && (decoded.gps.latitude !== 0 || decoded.gps.longitude !== 0)) {
+                            output += ` GPS:${decoded.gps.latitude.toFixed(6)}°,${decoded.gps.longitude.toFixed(6)}°`;
+                        }
+                        
+                          term.writeln(output);
+                        
+                        // Передаём в rocket (если метод ожидает определённый формат)
+                        rocket.processSerialDataForRocket(decoded);
+                    }else {
+                        term.writeln(`[Bad packet at offset ${offset}]`);
+                    }
+                    offset += 32;
+                } else {
+                    // Маркер не найден – пропускаем байт и ищем дальше
+                    offset++;
+                }
               }
-          }
+          } else {
+                  term.writeln(receiveBuffer);
+              }
           
           // Удаляем обработанные байты из буфера
           if (offset > 0) {
@@ -498,6 +490,7 @@ async function disconnectFromPort(): Promise<void> {
     }
   }
 
+  rocket.stopRocketTracking();
   markDisconnected();
 }
 
