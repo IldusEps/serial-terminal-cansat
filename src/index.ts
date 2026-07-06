@@ -194,35 +194,71 @@ function downloadBitmapContents(): void {
 }
 
 function loadContentsToTerminal(e: Event): void {
-  if (!term) {
-    throw new Error("no terminal instance found");
-  }
+  if (!term) throw new Error("no terminal instance found");
 
   const file = (e.target as HTMLInputElement).files[0];
-  console.log(file);
-  const reader = new FileReader();
+  if (!file) return;
 
-  reader.readAsText(file);
+  if (parsingCheckbox.checked) {
+    // Бинарный режим
+    const reader = new FileReader();
+    reader.onload = function() {
+      const arrayBuffer = reader.result as ArrayBuffer;
+      const data = new Uint8Array(arrayBuffer);
+      let offset = 0;
+      while (offset + 64 <= data.length) {
+        const marker = data[offset] | (data[offset + 1] << 8);
+        if (marker === 0xAAAA) {
+          const packet = data.slice(offset, offset + 64);
+          // Накопление сырых данных
+          const newRaw = new Uint8Array(rawDataBuffer.length + packet.length);
+          newRaw.set(rawDataBuffer);
+          newRaw.set(packet, rawDataBuffer.length);
+          rawDataBuffer = newRaw;
 
-  reader.onload = function () {
-    const text = (reader.result as string).split(/\r?\n/);
-    console.log(text);
-    text.forEach((stroke, index, array) => {
-      const otherStroke = /<CONNECTED>|<DISCONNECTED>/;
-      if (otherStroke.exec(stroke)) {
-        term.writeln(stroke + " Loaded", () => {
-          if (index == array.length - 1) rocket.updateRocketChart();
-        });
-      } else {
-        term.write(stroke + "\r\n", () => {
-          rocket.processSerialDataForRocket(stroke, false);
-          if (index == array.length - 1) rocket.updateRocketChart();
-        });
+          const decoded = decodeTelemetry(packet);
+          if (decoded) {
+            let output = `[${decoded.time}ms] T:${(decoded.temperature).toFixed(2)}°C ` +
+                         `P:${(decoded.pressure).toFixed(1)}Pa ` +
+                         `A(${(decoded.aX / 1000.0).toFixed(3)},${(decoded.aY / 1000.0).toFixed(3)},${(decoded.aZ / 1000.0).toFixed(3)}) ` +
+                         `G(${(decoded.gX / 10.0).toFixed(1)},${(decoded.gY / 10.0).toFixed(1)},${(decoded.gZ / 10.0).toFixed(1)})`;
+            if (decoded.gps && (decoded.gps.latitude !== 0 || decoded.gps.longitude !== 0)) {
+              output += ` GPS:${decoded.gps.latitude.toFixed(6)}°,${decoded.gps.longitude.toFixed(6)}°`;
+            }
+            term.writeln(output);
+            rocket.processSerialDataForRocket(decoded);
+          } else {
+            term.writeln(`[Bad packet at offset ${offset}]`);
+          }
+          offset += 64;
+        } else {
+          offset++;
+        }
       }
-    });
-    e.preventDefault();
-    (document.getElementById("load") as HTMLInputElement).value = "";
-  };
+      if (offset < data.length) {
+        term.writeln(`[Warning: ${data.length - offset} bytes left unprocessed]`);
+      }
+      rocket.updateRocketChart();
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    // Текстовый режим – просто выводим строки
+    const reader = new FileReader();
+    reader.readAsText(file);
+    reader.onload = function() {
+      const text = (reader.result as string).split(/\r?\n/);
+      text.forEach((stroke) => {
+        const otherStroke = /<CONNECTED>|<DISCONNECTED>/;
+        if (otherStroke.exec(stroke)) {
+          term.writeln(stroke + " Loaded");
+        } else {
+          term.write(stroke + "\r\n");
+        }
+      });
+    };
+  }
+  e.preventDefault();
+  (document.getElementById("load") as HTMLInputElement).value = "";
 }
 
 /**
@@ -402,7 +438,7 @@ async function connectToPort(): Promise<void> {
                     // Вместо текущего кода (примерно строки 347-365):
                     if (decoded) {
                         // Форматируем вывод в терминал с правильными полями
-                        let output = `[${decoded.time}ms] T:${(decoded.temperature / 100.0).toFixed(2)}°C ` +
+                        let output = `[${decoded.time}ms] T:${(decoded.temperature).toFixed(2)}°C ` +
                                       `P:${(decoded.pressure).toFixed(1)}Pa ` +
                                       `A(${(decoded.aX / 1000.0).toFixed(3)},${(decoded.aY / 1000.0).toFixed(3)},${(decoded.aZ / 1000.0).toFixed(3)}) ` +
                                       `G(${(decoded.gX / 10.0).toFixed(1)},${(decoded.gY / 10.0).toFixed(1)},${(decoded.gZ / 10.0).toFixed(1)})`;
