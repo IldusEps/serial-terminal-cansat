@@ -424,7 +424,7 @@ async function connectToPort(): Promise<void> {
             while (offset + 64 <= receiveBuffer.length) {
                 const marker = receiveBuffer[offset] | (receiveBuffer[offset+1] << 8);
                 if (marker === 0xAAAA) {
-                    // Берём пакет 32 байта
+                    // Берём пакет 64 байта
                     const packet = receiveBuffer.slice(offset, offset + 64);
                     
                     // --- Накопление сырых данных ---
@@ -454,14 +454,16 @@ async function connectToPort(): Promise<void> {
                     }else {
                         term.writeln(`[Bad packet at offset ${offset}]`);
                     }
-                    offset += 32;
+                    offset += 64;
                 } else {
                     // Маркер не найден – пропускаем байт и ищем дальше
                     offset++;
                 }
               }
           } else {
-                  term.writeln(receiveBuffer);
+                  term.writeln(new TextDecoder().decode(value));
+                  // Очищаем буфер, чтобы не накапливать
+                  receiveBuffer = new Uint8Array(0);
               }
           
           // Удаляем обработанные байты из буфера

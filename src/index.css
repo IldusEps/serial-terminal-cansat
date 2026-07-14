@@ -64,6 +64,16 @@ button {
 #tab-btn-3:checked ~ #pressure-chart-cont,
 #tab-btn-4:checked ~ #acceleration-chart,
 #tab-btn-5:checked ~ #zAcceleration-chart-cont,
-#tab-btn-6:checked ~ #speed-chart-cont {
+#tab-btn-6:checked ~ #speed-chart-cont,
+#tab-btn-7:checked ~ #map-container {
   display: block !important;
+}
+
+#map {
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.leaflet-attribution-flag{
+  display: none!important;
 }

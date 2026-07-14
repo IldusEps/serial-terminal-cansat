@@ -10,6 +10,8 @@ import {
   getHeightChartParameteres,
 } from "./chart";
 import RocketData from "./rocketData";
+import * as L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 export default class Rocket {
   startTrackingButton: HTMLElement = document.getElementById(
@@ -26,12 +28,19 @@ export default class Rocket {
   ) as HTMLButtonElement;
 
   info = document.getElementById("info") as HTMLDivElement;
+  gps = document.getElementById("gps") as HTMLDivElement;
   flightInfo = document.getElementById("flight-info") as HTMLDivElement;
   pressureInfo = document.getElementById("pressure-info") as HTMLDivElement;
   zAccelerationInfo = document.getElementById(
     "zAcceleration-info"
   ) as HTMLDivElement;
   speedInfo = document.getElementById("speed-info") as HTMLDivElement;
+
+  map: L.Map | null = null;
+  marker: L.Marker | null = null;
+  polyline: L.Polyline | null = null;
+  latlngs: L.LatLng[] = [];
+  mapInitialized = false;
 
   rocketChart: any = null;
   startPressure = 0;
@@ -57,6 +66,43 @@ export default class Rocket {
   dataPointCount = 0;
   lastUpdateTime = 0;
   rocketPos = { x: 0.0, y: 0.0, z: 0.0 };
+
+  initializeMap(): void {
+  const mapElement = document.getElementById('map');
+  if (!mapElement) {
+    console.warn('Map container not found');
+    return;
+  }
+
+  // Если карта уже создана, не пересоздаём
+  if (this.map) return;
+
+  this.map = L.map(mapElement, {
+    center: [55.751244, 37.618423], // координаты по умолчанию (Москва)
+    zoom: 17,
+    zoomControl: true,
+  });
+
+  // Добавляем слой OpenStreetMap
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(this.map);
+
+  // Создаём маркер (пока скрыт)
+  this.marker = L.marker([0, 0], { opacity: 0 }).addTo(this.map);
+
+  // Создаём полилинию для трека
+  this.polyline = L.polyline([], { color: '#ff0000', weight: 3 }).addTo(this.map);
+
+  this.mapInitialized = true;
+  document.getElementById('tab-btn-7')?.addEventListener('click', () => {
+    setTimeout(() => this.map?.invalidateSize(), 300);
+  });
+
+  document.getElementsByClassName("leaflet-attribution-flag")[0].style.paddingTop = 30;
+  console.log(document.getElementsByClassName("leaflet-attribution-flag")[0].style);
+}
+
   /**
    * Initializes the 3D rocket flight chart
    */
@@ -145,6 +191,8 @@ export default class Rocket {
       speedParameters[1],
       config
     );
+
+    this.initializeMap();
   }
 
   /**
@@ -220,6 +268,15 @@ export default class Rocket {
       Plotly.purge("speed-chart");
       Plotly.purge("height-chart");
       this.initializeRocketChart();
+    }
+
+    this.latlngs = [];
+    if (this.polyline) {
+      this.polyline.setLatLngs([]);
+    }
+    // Маркер можно скрыть
+    if (this.marker) {
+      this.marker.setOpacity(0);
     }
 
     console.log("Rocket chart data cleared");
@@ -564,6 +621,36 @@ processSerialDataForRocket(data: any, update = true): void {
           
           <div>Время: ${this.rocketData.time[lastIndex]}</div>
     `;
+    if (this.rocketData.latitude[lastIndex] != 0) {
+     this.gps.innerHTML = `
+<div>latitude: ${this.rocketData.latitude[lastIndex]} </div>
+<div>longitude: ${this.rocketData.longitude[lastIndex]}</div>
+    `;
+    // После обновления информации о GPS
+    if (this.rocketData.latitude[lastIndex] !== 0 && this.rocketData.longitude[lastIndex] !== 0) {
+      const lat = this.rocketData.latitude[lastIndex];
+      const lng = this.rocketData.longitude[lastIndex];
+
+      // Обновляем маркер
+      if (this.marker) {
+        this.marker.setLatLng([lat, lng]);
+        this.marker.setOpacity(1);
+        // Можно добавить всплывающую подсказку
+        this.marker.bindPopup(`Высота: ${this.rocketData.z[lastIndex].toFixed(1)} м`);
+      }
+
+      // Добавляем точку в трек
+      this.latlngs.push(L.latLng(lat, lng));
+      if (this.polyline) {
+        this.polyline.setLatLngs(this.latlngs);
+      }
+
+      // Центрируем карту на новой точке
+      if (this.map) {
+        this.map.panTo([lat, lng]);
+      }
+    }
+    }
   }
 
   /**
