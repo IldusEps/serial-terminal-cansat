@@ -244,17 +244,19 @@ export default class Rocket {
       time: [],
       pressure: [],
       temperature: [],
+      x: [],
+      y: [],
+      z: [],
       aX: [],
       aY: [],
       aZ: [],
       gX: [],
       gY: [],
       gZ: [],
-      x: [],
-      y: [],
-      z: [],
       speed: [],
-    };
+      latitude: [],  
+      longitude: []
+  };
     this.dataPointCount = 0;
     this.lastUpdateTime = 0;
 
