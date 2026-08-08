@@ -320,7 +320,7 @@ processSerialDataForRocket(data: any, update = true): void {
     function calculateAltitudeFromPressure(
         pressure: number,
         seaLevelPressure = 101325,
-        seaLevelTemperature = 293.15
+        seaLevelTemperature = 300
     ) {
         const L = 0.0065; // Temperature lapse rate (K/m)
         const g = 9.80665; // Gravitational acceleration (m/s²)
@@ -330,8 +330,6 @@ processSerialDataForRocket(data: any, update = true): void {
         const altitude =
             (seaLevelTemperature / L) *
             (1 - Math.pow(pressure / seaLevelPressure, (R * L) / (g * M)));
-console.log(seaLevelPressure);
-console.log(pressure);
         return altitude;
     }
 
