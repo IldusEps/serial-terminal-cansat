@@ -22,7 +22,8 @@ export function decodeTelemetry(data) {
     // temperature: int16_t LSB (байты 8-9)
     let temp = data[8] | (data[9] << 8);
     // Преобразуем в знаковое int16
-    if (temp & 0x8000) temp = temp - 65536;
+    if (temp & 0x8000) temp = (temp - 65536);
+    temp = temp / 100;
     
     // pressure: uint32_t LSB (байты 10-13)
     const pressure = data[10] | (data[11] << 8) | (data[12] << 16) | (data[13] << 24);

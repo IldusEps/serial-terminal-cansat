@@ -72,8 +72,8 @@
       <label class="checkbox" for="enter_flush">Flush on enter</label>
       <input id="convert_eol" type="checkbox" checked/>
       <label class="checkbox" for="convert_eol">Convert EOL</label>
-      <input id="autoconnect" type="checkbox"/>
-      <label class="checkbox" for="autoconnect" checked>Automatically connect</label>
+      <input id="autoconnect" type="checkbox" checked/>
+      <label class="checkbox" for="autoconnect">Automatically connect</label>
 
       <div class="info">
         <a href="https://github.com/GoogleChromeLabs/serial-terminal"
@@ -91,17 +91,19 @@
         <input checked id="tab-btn-1" name="tab-btn" type="radio" value="">
         <label for="tab-btn-1">Flight</label>
         <input id="tab-btn-2" name="tab-btn" type="radio" value="">
-        <label for="tab-btn-2">Height</label>
+        <label for="tab-btn-2">Temp</label>
         <input id="tab-btn-3" name="tab-btn" type="radio" value="">
-        <label for="tab-btn-3">Pressure</label>
+        <label for="tab-btn-3">Height</label>
         <input id="tab-btn-4" name="tab-btn" type="radio" value="">
-        <label for="tab-btn-4">Acceleration</label>
+        <label for="tab-btn-4">Pressure</label>
         <input id="tab-btn-5" name="tab-btn" type="radio" value="">
-        <label for="tab-btn-5">Z-acceleration</label>
+        <label for="tab-btn-5">Acceleration</label>
         <input id="tab-btn-6" name="tab-btn" type="radio" value="">
-        <label for="tab-btn-6">Speed</label>
+        <label for="tab-btn-6">Z-acceleration</label>
         <input id="tab-btn-7" name="tab-btn" type="radio" value="">
-        <label for="tab-btn-7">Map</label>
+        <label for="tab-btn-7">Speed</label>
+        <input id="tab-btn-8" name="tab-btn" type="radio" value="">
+        <label for="tab-btn-8">Map</label>
 
         <div id="flight-chart-cont" class="tab-container">          
           <label for="start-pressure" class="ml-5">Start pressure:</label>
@@ -114,6 +116,11 @@
           <div id="flight-chart"></div>
           <div id="flight-info"></div>
         </div>
+
+        <div id="temp-chart-cont" class="tab-container">     
+          <div id="temp-chart"></div>
+          <div id="temp-info"></div>
+        </div>  
 
         <div id="height-chart-cont" class="tab-container">     
           <div id="height-chart"></div>
@@ -151,6 +158,7 @@
           <div>Ускорение по X:</div>
           <div>Ускорение по Y:</div>
           <div>Давление:</div>
+          <div>Температура:</div>
           
           <div>Время:</div>
         </div>

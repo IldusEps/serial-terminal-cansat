@@ -54,6 +54,56 @@ export function getFlightChartParameteres(rocketData: RocketData) {
   return [[trajectoryTrace, currentPositionTrace], layout];
 }
 
+export function getTempChartParameteres(rocketData: RocketData) {
+  // Main trajectory trace
+  const trajectoryTrace = {
+    x: rocketData.time,
+    y: rocketData.temperature,
+    mode: "lines",
+    type: "scatter",
+    name: "Height Path",
+    line: {
+      color: "#1f77b4",
+      width: 3,
+    },
+  };
+
+  // Current position marker
+  const currentPositionTrace = {
+    x: rocketData.time.length > 0 ? [rocketData.time[rocketData.time.length - 1]] : [0],
+    y: rocketData.temperature.length > 0 ? [rocketData.temperature[rocketData.temperature.length - 1]] : [0],
+    mode: "markers", // Исправлено: было "lines", лучше "markers" для позиции
+    type: "scatter",
+    name: "Current Position",
+    marker: {
+      color: "#ff0000",
+      size: 8,
+      symbol: "circle",
+    },
+  };
+
+  const layout = {
+    title: "Temp vs Time",
+    xaxis: {
+      title: "Time (ms)",
+      showgrid: true,
+    },
+    yaxis: {
+      title: "Temp ()",
+      showgrid: true,
+    },
+    margin: { l: 80, r: 50, b: 60, t: 60 },
+    height: 360,
+    showlegend: true,
+    legend: {
+      x: 0,
+      y: 1.1,
+      orientation: "h",
+    },
+  };
+  return [[trajectoryTrace, currentPositionTrace], layout];
+}
+
 export function getHeightChartParameteres(rocketData: RocketData) {
   // Main trajectory trace
   const trajectoryTrace = {
@@ -153,21 +203,21 @@ export function getPressureChartParameteres(rocketData: RocketData, startPressur
   };
   
   // Добавляем линию стартового давления, если оно передано
-  if (startPressure && startPressure > 0) {
-    layout.shapes = [{
-      type: "line",
-      x0: 0,
-      x1: 1,
-      xref: "paper",
-      y0: startPressure,
-      y1: startPressure,
-      line: {
-        color: "#ff0000",
-        width: 2,
-        dash: "dash",
-      },
-    }];
-  }
+  // if (startPressure && startPressure > 0) {
+  //   layout.shapes = [{
+  //     type: "line",
+  //     x0: 0,
+  //     x1: 1,
+  //     xref: "paper",
+  //     y0: startPressure,
+  //     y1: startPressure,
+  //     line: {
+  //       color: "#ff0000",
+  //       width: 2,
+  //       dash: "dash",
+  //     },
+  //   }];
+  // }
   
   return [[trajectoryTrace, currentPositionTrace], layout];
 }

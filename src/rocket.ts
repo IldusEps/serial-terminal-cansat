@@ -1,14 +1,7 @@
 /* eslint-disable no-case-declarations */
 
 import * as Plotly from "plotly.js-dist";
-import {
-  getAccelerationChartParameteres,
-  getFlightChartParameteres,
-  getPressureChartParameteres,
-  getZAccelerationChartParameteres,
-  getSpeedChartParameters,
-  getHeightChartParameteres,
-} from "./chart";
+import * as chartsConfig from "./chart";
 import RocketData from "./rocketData";
 import * as L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -27,6 +20,17 @@ export default class Rocket {
     "minimum-pressure"
   ) as HTMLButtonElement;
 
+  private dataBuffer: any[] = [];
+  private updateTimer: number | null = null;
+  private readonly UPDATE_INTERVAL = 100; // мс (10 Гц обновления)
+  
+  // Счётчик для вывода в терминал (редко)
+  private terminalOutputCounter = 0;
+  private readonly TERMINAL_OUTPUT_INTERVAL = 5; // выводить каждые 5 пакетов
+
+  // Флаг для принудительного обновления
+  private isUpdatePending = false;
+
   info = document.getElementById("info") as HTMLDivElement;
   gps = document.getElementById("gps") as HTMLDivElement;
   flightInfo = document.getElementById("flight-info") as HTMLDivElement;
@@ -44,6 +48,7 @@ export default class Rocket {
 
   rocketChart: any = null;
   startPressure = 0;
+  private startTime = 0;
   rocketData: RocketData = {
       time: [],
       pressure: [],
@@ -100,7 +105,6 @@ export default class Rocket {
   });
 
   document.getElementsByClassName("leaflet-attribution-flag")[0].style.paddingTop = 30;
-  console.log(document.getElementsByClassName("leaflet-attribution-flag")[0].style);
 }
 
   /**
@@ -137,15 +141,23 @@ export default class Rocket {
       ],
     };
 
-    const flightParameters = getFlightChartParameteres(this.rocketData);
+    const flightParameters = chartsConfig.getFlightChartParameteres(this.rocketData);
     this.rocketChart = Plotly.newPlot(
       "flight-chart",
       flightParameters[0],
       flightParameters[1],
       config
     );
+    
+    const tempParameters = chartsConfig.getTempChartParameteres(this.rocketData);
+    this.rocketChart = Plotly.newPlot(
+      "temp-chart",
+      tempParameters[0],
+      tempParameters[1],
+      config
+    );
 
-    const heightParameters = getHeightChartParameteres(this.rocketData);
+    const heightParameters = chartsConfig.getHeightChartParameteres(this.rocketData);
     this.rocketChart = Plotly.newPlot(
       "height-chart",
       heightParameters[0],
@@ -153,7 +165,7 @@ export default class Rocket {
       config
     );
 
-    const pressureParameters = getPressureChartParameteres(
+    const pressureParameters = chartsConfig.getPressureChartParameteres(
       this.rocketData,
       this.startPressure
     );
@@ -164,7 +176,7 @@ export default class Rocket {
       config
     );
 
-    const accelerationParameters = getAccelerationChartParameteres(
+    const accelerationParameters = chartsConfig.getAccelerationChartParameteres(
       this.rocketData
     );
     this.rocketChart = Plotly.newPlot(
@@ -174,7 +186,7 @@ export default class Rocket {
       config
     );
 
-    const zAccelerationParameters = getZAccelerationChartParameteres(
+    const zAccelerationParameters = chartsConfig.getZAccelerationChartParameteres(
       this.rocketData
     );
     this.rocketChart = Plotly.newPlot(
@@ -184,7 +196,7 @@ export default class Rocket {
       config
     );
 
-    const speedParameters = getSpeedChartParameters(this.rocketData);
+    const speedParameters = chartsConfig.getSpeedChartParameters(this.rocketData);
     this.rocketChart = Plotly.newPlot(
       "speed-chart",
       speedParameters[0],
@@ -201,7 +213,9 @@ export default class Rocket {
   startRocketTracking(): void {
     if (this.isRocketTracking) return;
 
-    this.startPressure = Number(this.startPressureElement.value);
+    if (this.minimumPressure.style.backgroundColor == "green") {
+      this.startPressure = Number(this.startPressureElement.value);
+    }
     this.startPressureElement.disabled = true;
     this.isRocketTracking = true;
     this.startTrackingButton.textContent = "Stop Tracking";
@@ -264,6 +278,7 @@ export default class Rocket {
 
     if (this.startPressure) {
       Plotly.purge("flight-chart");
+      Plotly.purge("temp-chart");
       Plotly.purge("pressure-chart");
       Plotly.purge("acceleration-chart");
       Plotly.purge("zAcceleration-chart");
@@ -315,15 +330,16 @@ processSerialDataForRocket(data: any, update = true): void {
         const altitude =
             (seaLevelTemperature / L) *
             (1 - Math.pow(pressure / seaLevelPressure, (R * L) / (g * M)));
-
+console.log(seaLevelPressure);
+console.log(pressure);
         return altitude;
     }
 
     if (this.minimumPressure.style.backgroundColor == "green") {
         if (this.rocketData.pressure.length < 10) {
-            this.startPressureElement.value = Math.max(
-                ...this.rocketData.pressure
-            ).toString();
+          const maxPressure = Math.max(...this.rocketData.pressure);
+            this.startPressureElement.value = maxPressure.toString();
+            this.startPressure = maxPressure;
         }
     }
 
@@ -335,7 +351,13 @@ processSerialDataForRocket(data: any, update = true): void {
     // Получаем значения с учётом нового формата
     const pressure = data.pressure || data.pressurePa || 0;
     const temperature = data.temperature || data.temperatureC || 0;
-    const time = data.time || data.timeMs || 0;
+    let time = data.time || data.timeMs || 0;
+    if (this.rocketData.time.length === 0) {
+        this.startTime = time;
+    }
+    time = time - this.startTime;
+    // потом используем relativeTime в parsedData
+
     
     // Ускорения могут быть уже в физических величинах или в сырых значениях
     let aX = data.aX || data.acceleration?.x || 0;
@@ -360,8 +382,11 @@ processSerialDataForRocket(data: any, update = true): void {
         gZ = gZ / 10.0;
     }
 
+    let altitude = 0;
     // Рассчитываем высоту из давления
-    const altitude = calculateAltitudeFromPressure(pressure, this.startPressure);
+    if (this.rocketData.pressure.length > 1) {
+      altitude = calculateAltitudeFromPressure(pressure, this.startPressure);
+    }
     
     // Рассчитываем скорость
     let speed = 0;
@@ -463,7 +488,8 @@ processSerialDataForRocket(data: any, update = true): void {
       }
 
       // Update chart
-      if (update) this.updateRocketChart();
+      if (update && (this.rocketData.aX.length % 5 == 0 || this.rocketData.aX.length < 30)) 
+        setTimeout(() => this.updateRocketChart(), 10);
 
       this.dataPointCount++;
       this.lastUpdateTime = Date.now();
@@ -493,17 +519,31 @@ processSerialDataForRocket(data: any, update = true): void {
 
     Plotly.extendTraces("flight-chart", updateTrajectory, [0]);
     Plotly.restyle("flight-chart", updatePosition, [1]);
+    
+    // После обновления pressure-chart
+    lastIndex = this.rocketData.temperature.length - 1;
+    let updateTrajectory1 = {
+        x: [[this.rocketData.time[lastIndex]]],
+        y: [[this.rocketData.temperature[lastIndex]]],
+    };
+    let updatePosition1 = {
+        x: [[this.rocketData.time[lastIndex]]],
+        y: [[this.rocketData.temperature[lastIndex]]],
+    };
+    Plotly.extendTraces("temp-chart", updateTrajectory1, [0]);
+    Plotly.restyle("temp-chart", updatePosition1, [1]);
+    Plotly.relayout("temp-chart", { "yaxis.autorange": true });
 
     lastIndex = this.rocketData.z.length - 1;
 
     // Update trajectory
-    let updateTrajectory1 = {
+    updateTrajectory1 = {
       x: [[this.rocketData.time[lastIndex]]],
       y: [[this.rocketData.z[lastIndex]]],
     };
 
     // Update current position marker
-    let updatePosition1 = {
+    updatePosition1 = {
       x: [[this.rocketData.time[lastIndex]]],
       y: [[this.rocketData.z[lastIndex]]],
     };

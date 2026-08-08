@@ -218,7 +218,7 @@ function loadContentsToTerminal(e: Event): void {
 
           const decoded = decodeTelemetry(packet);
           if (decoded) {
-            let output = `[${decoded.time}ms] T:${(decoded.temperature).toFixed(2)}°C ` +
+            let output = `[${decoded.time}ms] T:${(decoded.temperature / 100).toFixed(2)}°C ` +
                          `P:${(decoded.pressure).toFixed(1)}Pa ` +
                          `A(${(decoded.aX / 1000.0).toFixed(3)},${(decoded.aY / 1000.0).toFixed(3)},${(decoded.aZ / 1000.0).toFixed(3)}) ` +
                          `G(${(decoded.gX / 10.0).toFixed(1)},${(decoded.gY / 10.0).toFixed(1)},${(decoded.gZ / 10.0).toFixed(1)})`;

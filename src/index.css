@@ -60,12 +60,13 @@ button {
   display: none;
 }
 #tab-btn-1:checked ~ #flight-chart-cont,
-#tab-btn-2:checked ~ #height-chart-cont,
-#tab-btn-3:checked ~ #pressure-chart-cont,
-#tab-btn-4:checked ~ #acceleration-chart,
-#tab-btn-5:checked ~ #zAcceleration-chart-cont,
-#tab-btn-6:checked ~ #speed-chart-cont,
-#tab-btn-7:checked ~ #map-container {
+#tab-btn-2:checked ~ #temp-chart-cont,
+#tab-btn-3:checked ~ #height-chart-cont,
+#tab-btn-4:checked ~ #pressure-chart-cont,
+#tab-btn-5:checked ~ #acceleration-chart,
+#tab-btn-6:checked ~ #zAcceleration-chart-cont,
+#tab-btn-7:checked ~ #speed-chart-cont,
+#tab-btn-8:checked ~ #map-container {
   display: block !important;
 }
 
