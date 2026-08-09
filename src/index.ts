@@ -199,6 +199,7 @@ function loadContentsToTerminal(e: Event): void {
   const file = (e.target as HTMLInputElement).files[0];
   if (!file) return;
 
+  rocket.startRocketTracking();
   if (parsingCheckbox.checked) {
     // Бинарный режим
     const reader = new FileReader();
@@ -226,7 +227,7 @@ function loadContentsToTerminal(e: Event): void {
               output += ` GPS:${decoded.gps.latitude.toFixed(6)}°,${decoded.gps.longitude.toFixed(6)}°`;
             }
             term.writeln(output);
-            rocket.processSerialDataForRocket(decoded);
+            rocket.processSerialDataForRocket(decoded, false);
           } else {
             term.writeln(`[Bad packet at offset ${offset}]`);
           }
